@@ -146,3 +146,30 @@ NEO 的核心理念很简单：**先保住本金，再谈赚钱。**
 - **Author**: weikenho
 - **GitHub**: https://github.com/weikenho/NEO-Finance
 - **Star ⭐ if you like it!** / 喜欢就点个 Star！
+
+
+## Screenshots / 
+
+### Homepage
+
+![Homepage](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/01_homepage.jpg)
+
+### Financial News
+
+![Financial News](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/02_news.jpg)
+
+### Trend Analysis
+
+![Trend Analysis](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/03_trend_analysis.jpg)
+
+### A-Share Monitor
+
+![A-Share Monitor](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/04_astock_monitor.jpg)
+
+### Scam Detector
+
+![Scam Detector](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/05_other.jpg)
+
+### Macro Dashboard
+
+![Macro Dashboard](https://raw.githubusercontent.com/weikenho/NEO-Finance/main/screenshots/06_macro_dashboard.jpg)
