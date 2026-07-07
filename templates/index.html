@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ NEO — NEO v2.0</title>
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
+
+/* === 顶部导航栏 — 深色品牌感 === */
+.top-bar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+.top-bar .logo { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+.top-bar .tagline { font-size: 13px; opacity: 0.8; font-weight: 300; }
+.top-bar .brand-badge { background: rgba(255,255,255,0.12); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; margin-left: 8px; }
+.mode-indicator { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.mode-badge { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+.mode-badge.paper { background: rgba(39,174,96,0.2); color: #27ae60; border-color: #27ae60; }
+.mode-badge.real { background: rgba(231,76,60,0.2); color: #e74c3c; border-color: #e74c3c; }
+.mode-badge:hover { transform: scale(1.05); }
+
+.container { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+
+/* === Tab导航 === */
+.tab-nav { display: flex; gap: 6px; background: white; margin: 16px auto; max-width: 920px; padding: 6px; border-radius: 14px; border: 1px solid #e8eaed; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.tab-btn { flex: 1; padding: 12px 8px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; color: #636e72; transition: all 0.25s; }
+.tab-btn.active { background: linear-gradient(135deg, #0984e3, #0f3460); color: white; box-shadow: 0 2px 8px rgba(9,132,227,0.3); }
+.tab-btn:hover:not(.active) { background: #f0f2f5; }
+
+.tab-content { display: none; max-width: 920px; margin: 0 auto; padding: 0 16px; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(8px); } }
+
+/* === 卡片 === */
+.card { background: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.2s; }
+.card:hover { transform: translateY(-1px); }
+.card h2 { font-size: 18px; margin-bottom: 4px; font-weight: 700; }
+.card h3 { font-size: 16px; margin-bottom: 8px; font-weight: 600; }
+.hint { font-size: 13px; color: #636e72; margin-bottom: 12px; line-height: 1.5; }
+
+/* === 风险红绿灯 === */
+.risk-light-card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+.risk-light { font-size: 28px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.risk-explanation { font-size: 15px; color: #636e72; line-height: 1.7; max-width: 600px; margin: 0 auto; }
+
+/* === 预警横幅 === */
+.alert { padding: 14px 18px; border-radius: 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.6; display: flex; align-items: flex-start; gap: 8px; }
+.alert-danger { background: linear-gradient(135deg, #fff5f0, #ffe8d6); border: 1px solid #fd7e14; color: #e17a0c; }
+.alert-warning { background: linear-gradient(135deg, #fff8e1, #ffefc1); border: 1px solid #ffc107; color: #f39c12; }
+.alert-info { background: linear-gradient(135deg, #e8f4fd, #d4ebf7); border: 1px solid #90caf9; color: #0984e3; }
+.alert-success { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 1px solid #81c784; color: #27ae60; }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* === ETF表格 === */
+.etf-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.etf-table th { background: #f8f9fa; padding: 12px 10px; text-align: left; font-weight: 600; color: #636e72; font-size: 13px; }
+.etf-table td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
+.etf-table tr:last-child td { border-bottom: none; }
+.etf-table tr:hover td { background: #f8f9fa; }
+.up { color: #e17a0c; font-weight: 600; }
+.down { color: #00b369; font-weight: 600; }
+.center { text-align: center; color: #636e72; }
+.table-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; font-size: 13px; color: #636e72; }
+
+/* === 按钮 === */
+.btn { padding: 8px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: linear-gradient(135deg, #0984e3, #0f3460); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #0779c7, #0a2647); transform: translateY(-1px); }
+.btn-success { background: linear-gradient(135deg, #27ae60, #219653); color: white; }
+.btn-success:hover { transform: translateY(-1px); }
+.btn-danger { background: linear-gradient(135deg, #e17a0c, #c76d09); color: white; }
+.btn-danger:hover { transform: translateY(-1px); }
+.btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 8px; }
+.btn-outline { background: #f0f2f5; color: #636e72; }
+.btn-outline:hover { background: #e8eaed; }
+
+/* === 套路识别器 === */
+.scam-input { width: 100%; min-height: 120px; padding: 14px; border: 2px solid #e8eaed; border-radius: 12px; font-size: 14px; font-family: inherit; resize: vertical; transition: border-color 0.2s; }
+.scam-input:focus { outline: none; border-color: #0984e3; }
+.scam-result { margin-top: 16px; }
+.scam-score { font-size: 52px; font-weight: 800; margin-bottom: 8px; }
+.scam-score.safe { color: #27ae60; }
+.scam-score.caution { color: #f39c12; }
+.scam-score.warning { color: #e67e22; }
+.scam-score.danger { color: #d63031; }
+.scam-match { background: #fff5f0; border-left: 4px solid #e17a0c; padding: 14px 18px; margin-bottom: 10px; border-radius: 0 10px 10px 0; }
+.scam-match .name { font-weight: 700; margin-bottom: 4px; font-size: 15px; }
+.scam-match .keywords { font-size: 13px; color: #636e72; margin-bottom: 6px; }
+.scam-match .explanation { font-size: 14px; color: #2d3436; line-height: 1.6; }
+
+/* === 保本计算器 === */
+.calc-input-group { margin-bottom: 14px; }
+.calc-input-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #2d3436; }
+.calc-input-group input { width: 100%; padding: 10px 14px; border: 2px solid #e8eaed; border-radius: 10px; font-size: 14px; transition: border-color 0.2s; }
+.calc-input-group input:focus { outline: none; border-color: #0984e3; }
+.calc-result { background: linear-gradient(135deg, #f0fdf4, #e8f5e9); border: 2px solid #d1fae5; border-radius: 12px; padding: 20px; margin-top: 16px; }
+.calc-result .line { padding: 6px 0; border-bottom: 1px solid #d1fae5; }
+.calc-result .line:last-child { border-bottom: none; }
+.calc-result .warning-line { color: #e17a0c; font-weight: 600; }
+.calc-result .safe-line { color: #27ae60; font-weight: 600; }
+.calc-result .status-line { font-size: 16px; font-weight: 700; padding: 8px 0; }
+
+/* === 钱包/持仓 === */
+.wallet-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.wallet-item { background: linear-gradient(135deg, #f8f9fa, #f0f2f5); border-radius: 12px; padding: 16px; text-align: center; }
+.wallet-item .label { font-size: 12px; color: #636e72; margin-bottom: 6px; font-weight: 500; }
+.wallet-item .value { font-size: 22px; font-weight: 800; }
+.wallet-item .value.green { color: #00b369; }
+.wallet-item .value.red { color: #e17a0c; }
+.wallet-item .value.blue { color: #0984e3; }
+.position-card { border: 1px solid #e8eaed; border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.position-card .info { flex: 1; }
+.position-card .name { font-weight: 700; font-size: 15px; }
+.position-card .detail { font-size: 13px; color: #636e72; margin-top: 2px; }
+.position-card .pnl { font-size: 18px; font-weight: 700; margin-right: 12px; }
+.position-card .actions { display: flex; gap: 6px; }
+
+/* === 交易记录 === */
+.trade-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; line-height: 1.5; }
+.trade-item:last-child { border-bottom: none; }
+.trade-buy { color: #e17a0c; font-weight: 700; }
+.trade-sell { color: #00b369; font-weight: 700; }
+
+/* === 统计 === */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.stat-item { background: #f8f9fa; border-radius: 12px; padding: 18px; text-align: center; }
+.stat-item .stat-value { font-size: 24px; font-weight: 800; color: #0984e3; }
+.stat-item .stat-label { font-size: 13px; color: #636e72; margin-top: 4px; }
+.stat-summary { margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #e8f4fd, #d4ebf7); border-radius: 12px; font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+
+/* === 交易弹窗 === */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; animation: fadeIn 0.2s ease-in; }
+.modal-box { background: white; border-radius: 16px; padding: 24px; width: 92%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+.modal-box h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; }
+.modal-box .form-row { margin-bottom: 12px; }
+.modal-box .form-row label { display: block; font-size: 13px; color: #636e72; margin-bottom: 4px; font-weight: 500; }
+.modal-box .form-row input { width: 100%; padding: 8px 12px; border: 2px solid #e8eaed; border-radius: 8px; font-size: 14px; }
+.modal-box .form-row input:focus { outline: none; border-color: #0984e3; }
+.modal-box .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+.modal-box .btn-row .btn { flex: 1; }
+.modal-box .price-info { font-size: 13px; color: #636e72; margin-bottom: 12px; padding: 8px; background: #f8f9fa; border-radius: 8px; }
+.modal-box .cost-preview { font-size: 14px; font-weight: 700; color: #0984e3; margin-top: 4px; }
+.modal-box .error-msg { color: #e17a0c; font-size: 14px; margin-top: 8px; }
+.modal-box .success-msg { color: #27ae60; font-size: 14px; margin-top: 8px; }
+
+/* === AI Chat Widget — Clean Design === */
+.ai-chat-toggle {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.ai-chat-tooltip {
+    padding: 8px 14px;
+    background: #2d303e;
+    color: white;
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid #3a3d4d;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.ai-chat-toggle:hover .ai-chat-tooltip {
+    opacity: 1;
+    transform: translateX(0);
+}
+@keyframes floatBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+.ai-chat-btn {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid rgba(74, 123, 255, 0.3);
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 0 4px rgba(74, 123, 255, 0.1);
+    transition: box-shadow 0.2s ease;
+    animation: floatBreathe 3s ease-in-out infinite;
+    background: #252836;
+}
+.ai-chat-btn:hover {
+    animation: none;
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(74, 123, 255, 0.25), 0 0 0 6px rgba(74, 123, 255, 0.15);
+}
+.ai-chat-btn:active {
+    transform: scale(0.95);
+    animation: none;
+}
+.ai-emoji-avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    line-height: 1;
+}
+.ai-chat-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 22px;
+    height: 22px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    border: 3px solid #f0f2f5;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+}
+.ai-chat-badge.show { display: flex; }
+
+@keyframes aiBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Chat panel */
+.ai-chat-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 130px;
+    width: 400px;
+    height: 580px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e8eaed;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9998;
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ai-chat-panel.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Header */
+.ai-chat-header {
+    height: 56px;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.ai-chat-header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.ai-chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.ai-chat-header-info {
+    flex: 1;
+}
+.ai-chat-header-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+.ai-chat-header-status {
+    font-size: 12px;
+    color: #7ee787;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+.ai-chat-header-status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    background: #7ee787;
+    border-radius: 50%;
+    display: inline-block;
+    animation: statusPulse 2s infinite;
+}
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.ai-chat-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.ai-chat-close:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Quick tags */
+.ai-chat-quick-tags {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    border-bottom: 1px solid #e8eaed;
+    background: #f8f9fa;
+}
+.ai-chat-quick-tags::-webkit-scrollbar { display: none; }
+.ai-chat-quick-tag {
+    padding: 6px 12px;
+    background: rgba(9, 132, 227, 0.08);
+    border: 1px solid rgba(9, 132, 227, 0.15);
+    border-radius: 16px;
+    font-size: 12px;
+    color: #0984e3;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.ai-chat-quick-tag:hover {
+    background: rgba(9, 132, 227, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Messages area */
+.ai-chat-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #f8f9fa;
+}
+.ai-chat-messages::-webkit-scrollbar { width: 6px; }
+.ai-chat-messages::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+/* AI message - with emoji */
+.ai-chat-msg-ai {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 85%;
+}
+.ai-chat-msg-ai .msg-emoji {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid rgba(9, 132, 227, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: #f0f2f5;
+}
+.ai-chat-msg-ai .msg-bubble {
+    background: white;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border-top-left-radius: 4px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #2d3436;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* User message - clean bubble */
+.ai-chat-msg-user {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 100%;
+}
+.ai-chat-msg-user .msg-bubble {
+    background: linear-gradient(135deg, #0984e3, #0f3460);
+    padding: 12px 14px;
+    border-radius: 14px;
+    border-top-right-radius: 4px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #fff;
+    max-width: 80%;
+    box-shadow: 0 2px 8px rgba(9, 132, 227, 0.25);
+}
+
+/* Thinking animation */
+.ai-chat-thinking {
+    display: flex;
+    gap: 4px;
+    padding: 16px 14px;
+}
+.ai-chat-thinking span {
+    width: 8px;
+    height: 8px;
+    background: #0984e3;
+    border-radius: 50%;
+    animation: aiThinkBounce 1.4s infinite ease-in-out;
+}
+.ai-chat-thinking span:nth-child(1) { animation-delay: 0s; }
+.ai-chat-thinking span:nth-child(2) { animation-delay: 0.2s; }
+.ai-chat-thinking span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes aiThinkBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* Input area */
+.ai-chat-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #e8eaed;
+    background: #fff;
+    flex-shrink: 0;
+}
+.ai-chat-input-area input {
+    flex: 1;
+    height: 40px;
+    padding: 0 14px;
+    background: #f0f2f5;
+    border: 1px solid #e8eaed;
+    border-radius: 20px;
+    color: #333;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.ai-chat-input-area input:focus {
+    border-color: #0984e3;
+}
+.ai-chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0984e3, #0f3460);
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.ai-chat-send:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(9, 132, 227, 0.3);
+}
+.ai-chat-send:active {
+    transform: scale(0.95);
+}
+
+.system-notice { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(26,26,46,0.3); }
+.system-notice h3 { font-size: 16px; margin-bottom: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.system-notice .notice-item { font-size: 14px; line-height: 1.6; margin-bottom: 8px; padding-left: 14px; border-left: 3px solid rgba(255,255,255,0.3); }
+.system-notice .notice-time { font-size: 12px; opacity: 0.7; margin-top: 10px; }
+.ai-chat-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9997;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+.ai-chat-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+/* === 页面两侧卡通装饰 === */
+.cartoon-decor {
+    position: fixed;
+    top: 80px;
+    height: calc(100vh - 80px);
+    width: 30%;
+    opacity: 0.15;
+    z-index: 1;
+    transition: opacity 1s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+}
+.cartoon-decor:hover {
+    opacity: 0.45;
+}
+.cartoon-decor-left {
+    left: 0;
+}
+.cartoon-decor-right {
+    right: 0;
+}
+.cartoon-decor img {
+    width: 120%;
+    height: auto;
+    max-height: calc(100vh - 80px);
+    object-fit: contain;
+}
+/* === 帮助中心下拉菜单 === */
+.top-bar .help-dropdown { position: relative; display: inline-block; margin-left: 12px; }
+.top-bar .help-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.top-bar .help-btn:hover { background: rgba(255,255,255,0.22); }
+.top-bar .help-btn .arrow { font-size: 10px; margin-left: 4px; transition: transform 0.2s; display: inline-block; }
+.top-bar .help-btn.open .arrow { transform: rotate(180deg); }
+.help-menu { display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 440px; max-height: 75vh; overflow-y: auto; background: #1a1a2e; color: white; border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); z-index: 200; font-size: 13px; }
+.help-menu.show { display: block; animation: fadeIn 0.2s ease-in; }
+.help-menu-header { padding: 14px 20px; font-size: 15px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); border-radius: 14px 14px 0 0; }
+.help-section { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.help-section h4 { font-size: 13px; font-weight: 600; color: #a8d8ff; margin-bottom: 6px; }
+.help-section p { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 4px; }
+.help-section ul { padding-left: 16px; margin: 4px 0; }
+.help-section li { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.8; }
+.help-menu-footer { padding: 12px 20px; font-size: 11px; color: rgba(255,255,255,0.35); border-top: 1px solid rgba(255,255,255,0.1); border-radius: 0 0 14px 14px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<header class="top-bar">
+    <div class="logo">🛡️ NEO</div>
+    <div class="tagline">NEO来帮你了 — 帮你守住钱包</div>
+    <span class="brand-badge">v2.0</span>
+    <div class="mode-indicator">
+        <span style="font-size:13px;opacity:0.8">当前模式：</span>
+        <span class="mode-badge paper" id="modeBadge" onclick="toggleMode()">📝 模拟盘</span>
+    </div>
+    <div class="help-dropdown">
+        <button class="help-btn" id="helpBtn" onclick="toggleHelpMenu()">❓ 帮助中心 <span class="arrow">▼</span></button>
+        <div class="help-menu" id="helpMenu">
+            <div class="help-menu-header">📘 NEO 使用手册</div>
+            <div class="help-section">
+                <h4>👋 欢迎来到 NEO</h4>
+                <p>NEO 是你的个人投资助手，帮你盯盘、识套路、算账、做决策。不用懂太多金融术语，一看就明白。</p>
+            </div>
+            <div class="help-section">
+                <h4>🏠 首页仪表盘</h4>
+                <p>你的第一站。打开就能看到：</p>
+                <ul>
+                    <li>🚦 风险红绿灯 — 当前市场总体风险等级</li>
+                    <li>⚡ 实时预警 — AI 根据行情自动发出的提醒</li>
+                    <li>💬 AI 对话小窗口 — 右下角卡通小丫头，点它就能问 AI</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h4>🕵️ 套路识别器</h4>
+                <p>把别人说的话、广告语、KOL的推荐粘贴进去，AI帮你分析有没有常见套路：</p>
+                <ul>
+                    <li>"FOMO" — 制造焦虑让你追高</li>
+                    <li>"权威背书" — 用名人名言、专家头衔压你</li>
+                    <li>"限时限量" — 不马上买就亏了</li>
+                    <li>"稳赚不亏" — 天下哪有这种好事</li>
+                </ul>
+                <p class="hm-tips">💡 适用场景：微信群公告、直播话术、券商推送、财经博主文章</p>
+            </div>
+            <div class="help-section">
+                <h4>🛡️ 保本计算器</h4>
+                <p>算算你的安全边际。输入本金、止损线、止盈线，告诉你：</p>
+                <ul>
+                    <li>现在该不该加仓</li>
+                    <li>最坏情况亏多少</li>
+                    <li>理想情况赚多少</li>
+                    <li>当前是安全区还是危险区</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h4>📊 A股监控 / 🏆 黄金白银 / 基本金属</h4>
+                <p>实时行情看板，覆盖 A 股主要指数、黄金白银、铜铝锌等大宗商品。每个品种都有 AI 点评和趋势信号。</p>
+            </div>
+            <div class="help-section">
+                <h4>🤖 AI 回测</h4>
+                <p>让 AI 帮你"穿越"到过去一年，看看如果用 AI 的策略交易，能赚多少：</p>
+                <ul>
+                    <li>选品种、设本金、选策略（稳健/平衡/激进）</li>
+                    <li>看收益率、胜率、夏普比率、最大回撤</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h4>🔬 防套路检验</h4>
+                <p>用历史数据做压力测试，看看 AI 的预警信号到底准不准。包含：</p>
+                <ul>
+                    <li>历史预警事件时间线</li>
+                    <li>听AI的 vs 凭感觉的收益对比</li>
+                    <li>AI 命中率统计</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h4>🌐 宏观仪表盘</h4>
+                <p>全局视角看市场，涵盖：</p>
+                <ul>
+                    <li>中国宏观：CPI、PMI、M2、SHIBOR</li>
+                    <li>美国宏观：美联储利率、CPI、非农</li>
+                    <li>资金流向：北向资金、主力净流入</li>
+                    <li>市场情绪：VIX 恐慌指数</li>
+                </ul>
+            </div>
+            <div class="help-section">
+                <h4>💰 模拟盘 / 实盘交易</h4>
+                <p>不花真钱的模拟盘，也可以接实盘数据。支持买入/卖出/持仓管理/交易记录。</p>
+            </div>
+            <div class="help-section">
+                <h4>🔧 AI 设置</h4>
+                <p>自定义 AI 后端（API 地址、模型名、Key），让 AI 对话和分析用你自己的模型。</p>
+            </div>
+            <div class="help-menu-footer">NEO v2.0 — 帮你守住钱包 🛡️</div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+<!-- Tab导航 -->
+<nav class="tab-nav">
+    <button class="tab-btn active" data-tab="dashboard">🏠 首页</button>
+    <button class="tab-btn" data-tab="news">📰 财经新闻</button>
+    <button class="tab-btn" data-tab="trends">📈 趋势分析</button>
+    <button class="tab-btn" data-tab="stocks">📊 A股监控</button>
+    <button class="tab-btn" data-tab="gold">🏆 黄金白银</button>
+    <button class="tab-btn" data-tab="scam">🕵️ 套路识别</button>
+    <button class="tab-btn" data-tab="preserve">🛡️ 保本计算</button>
+    <button class="tab-btn" data-tab="trading">💰 我的钱包</button>
+    <button class="tab-btn" data-tab="aisetting">🔧 AI设置</button>
+    <button class="tab-btn" data-tab="backtest">🤖 AI回测</button>
+    <button class="tab-btn" data-tab="stress">🔬 防套路检验</button>
+    <button class="tab-btn" data-tab="macro">🌐 宏观仪表盘</button>
+</nav>
+<!-- TAB 1: 首页仪表盘 -->
+<section id="tab-dashboard" class="tab-content active">
+    <div class="risk-light-card">
+        <div class="risk-light">
+            <span id="lightDot" style="font-size: 36px;">🟢</span>
+            <span id="lightText" style="font-size: 22px; font-weight: 700;">加载中...</span>
+        </div>
+        <p class="risk-explanation" id="riskExplanation"></p>
+    </div>
+
+    <div class="card">
+        <h2>⚡ 风险预警</h2>
+        <p class="hint">系统帮你盯着钱包，有风吹草动就提醒你</p>
+        <div id="alertsContainer"><p class="hint">正在扫描你的持仓...</p></div>
+    </div>
+
+    <div class="system-notice">
+        <h3>📢 系统公告</h3>
+        <div id="systemNotices">
+            <div class="notice-item">🛡️ NEO v2.0 正式上线！现在支持模拟盘/实盘双模式切换</div>
+            <div class="notice-item">📊 系统正在为你监控 8 只主流 ETF，覆盖大盘、中盘、成长、科技、稳健、海外、行业</div>
+            <div class="notice-item">💡 小贴士：投资不是赛跑，先跑完的人不一定跑得最远——先保住本金再谈赚钱</div>
+        </div>
+        <div class="notice-time" id="noticeTime"></div>
+    </div>
+
+    <div class="card">
+        <h2>👀 我盯着的基金</h2>
+        <p class="hint">这些基金系统帮你看著呢，有变动会提醒你</p>
+        <table class="etf-table">
+            <thead>
+                <tr><th>基金名</th><th>类型</th><th>现价</th><th>涨跌</th><th>状态</th><th>操作</th></tr>
+            </thead>
+            <tbody id="etfTableBody">
+                <tr><td colspan="6" class="center">加载中...</td></tr>
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span id="updateTime">上次更新：刚刚</span>
+            <button class="btn btn-primary" id="refreshBtn" onclick="loadAllData()">🔄 刷新数据</button>
+        </div>
+    </div>
+</section>
+
+<!-- TAB: 财经新闻 -->
+<section id="tab-news" class="tab-content">
+    <div class="card">
+        <h2>📰 财经新闻</h2>
+        <p class="hint">帮你盯着最近的财经大事件，有风吹草动就跑</p>
+        <div id="newsContainer">
+            <p class="hint">正在抓取新闻...</p>
+        </div>
+        <div style="margin-top:16px;text-align:center;">
+            <button class="btn btn-primary" onclick="loadNews()">🔄 刷新新闻</button>
+        </div>
+    </div>
+    <div class="card">
+        <h2>🧠 NEO帮你解读新闻</h2>
+        <p class="hint">让NEO用大白话给你讲讲最近的市场动态</p>
+        <div id="newsAiAnalysis"></div>
+        <button class="btn btn-outline" onclick="analyzeNews()">让NEO说说看</button>
+    </div>
+</section>
+
+<!-- TAB: 趋势分析 -->
+<section id="tab-trends" class="tab-content">
+    <div class="card">
+        <h2>📈 市场趋势分析</h2>
+        <p class="hint">帮你看看现在市场是"暖"还是"冷"，用大白话给你说清楚</p>
+        <div id="trendSummary" style="padding:16px;background:linear-gradient(135deg,#f0f2f5,#e8eaed);border-radius:12px;margin-bottom:16px;text-align:center;font-size:16px;font-weight:700;">
+            加载中...
+        </div>
+        <div id="trendList">
+            <p class="hint">正在分析趋势...</p>
+        </div>
+    </div>
+    <div class="card">
+        <h2>💡 NEO的趋势建议</h2>
+        <p class="hint">结合新闻+趋势+你的持仓，NEO给你综合建议</p>
+        <div id="trendAiAdvice"></div>
+        <button class="btn btn-outline" onclick="analyzeTrends()">让NEO分析</button>
+    </div>
+</section>
+
+<!-- TAB: A股监控 -->
+<section id="tab-stocks" class="tab-content">
+    <div class="card">
+        <h2>🔍 查股票</h2>
+        <p class="hint">输入股票代码或名字，查你想看的那只股票，NEO帮你分析</p>
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <input type="text" id="stockSearchInput" placeholder="比如：600519 或 茅台" style="flex:1;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:15px;transition:border-color 0.2s;" onkeydown="if(event.key==='Enter')searchStock()">
+            <button class="btn btn-primary" onclick="searchStock()">🔍 查</button>
+        </div>
+        <div id="stockSearchResult"></div>
+    </div>
+    <div class="card">
+        <h2>📊 A股核心监控</h2>
+        <p class="hint">帮你盯着市场上最重要的那些股票，有风吹草动就给你亮灯</p>
+        <div id="stockAlertBanner"></div>
+        <table class="etf-table">
+            <thead>
+                <tr><th>股票名</th><th>代码</th><th>板块</th><th>现价</th><th>涨跌</th><th>信号灯</th><th>大白话</th></tr>
+            </thead>
+            <tbody id="stockTableBody">
+                <tr><td colspan="7" class="center">加载中...</td></tr>
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span id="stockUpdateTime">上次更新：刚刚</span>
+            <button class="btn btn-primary" onclick="loadStocks()">🔄 刷新A股</button>
+        </div>
+    </div>
+    <div class="card">
+        <h2>🧠 NEO帮你看看A股</h2>
+        <p class="hint">让NEO结合大盘、估值、消息面给你说说现在的A股到底什么情况</p>
+        <div id="stockAiAdvice"></div>
+        <button class="btn btn-outline" onclick="analyzeStocks()">让NEO分析A股</button>
+        <div id="stockChatArea" style="display:none;margin-top:16px;">
+            <textarea class="scam-input" id="stockChatInput" rows="3" placeholder="问NEO关于A股的任何问题，比如：茅台现在能买吗？"></textarea>
+            <button class="btn btn-primary" style="margin-top:8px;" onclick="stockChatAsk()">🗣️ 问NEO</button>
+        </div>
+    </div>
+</section>
+
+<!-- TAB: 黄金白银 -->
+<section id="tab-gold" class="tab-content">
+    <div class="card">
+        <h2>🏆 黄金白银行情</h2>
+        <p class="hint">黄金是老百姓的"压箱底宝贝"——市场一乱，黄金就亮灯了</p>
+        <div id="goldAlertBanner"></div>
+        <table class="etf-table">
+            <thead>
+                <tr><th>品种</th><th>类型</th><th>现价</th><th>涨跌</th><th>信号灯</th><th>大白话</th></tr>
+            </thead>
+            <tbody id="goldTableBody">
+                <tr><td colspan="6" class="center">加载中...</td></tr>
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span id="goldUpdateTime">上次更新：刚刚</span>
+            <button class="btn btn-primary" onclick="loadGold()">🔄 刷新金价</button>
+        </div>
+    </div>
+    <div class="card">
+        <h2>🧠 NEO帮你看看黄金</h2>
+        <p class="hint">黄金到底是该买还是该卖？让NEO结合国际形势给你说说</p>
+        <div id="goldAiAdvice"></div>
+        <button class="btn btn-outline" onclick="analyzeGold()">让NEO分析黄金</button>
+        <div id="goldChatArea" style="display:none;margin-top:16px;">
+            <textarea class="scam-input" id="goldChatInput" rows="3" placeholder="问NEO关于黄金的任何问题，比如：金价涨到3000了还是好时机吗？"></textarea>
+            <button class="btn btn-primary" style="margin-top:8px;" onclick="goldChatAsk()">🗣️ 问NEO</button>
+        </div>
+    </div>
+</section>
+
+<!-- TAB 2: 套路识别器 -->
+<section id="tab-scam" class="tab-content">
+    <div class="card">
+        <h2>🕵️ 套路识别器</h2>
+        <p class="hint">看到什么消息、标题、推送，贴进去，帮你看看有没有"风险信号"</p>
+        <textarea class="scam-input" id="scamText" rows="5" placeholder="在这里粘贴你看到的消息..."></textarea>
+        <br><br>
+        <button class="btn btn-primary" onclick="checkScam()">🔍 开始检查</button>
+        <button class="btn btn-outline" style="margin-left:8px" onclick="loadScamExamples()">📋 试试例子</button>
+        <div class="scam-result" id="scamResult"></div>
+    </div>
+</section>
+
+<!-- TAB 3: 保本计算器 -->
+<section id="tab-preserve" class="tab-content">
+    <div class="card">
+        <h2>🛡️ 保本计算器</h2>
+        <p class="hint">告诉你"你的钱现在啥情况"，"最坏亏多少"，"什么时候该跑路"</p>
+        <div class="calc-input-group">
+            <label>你投了多少钱？</label>
+            <input type="number" id="calcPrincipal" value="10000" placeholder="比如：10000">
+        </div>
+        <div class="calc-input-group">
+            <label>你设的止损线是多少？（亏多少就跑）</label>
+            <input type="number" id="calcStopLoss" value="8" placeholder="比如：8（就是亏8%就卖）">
+        </div>
+        <div class="calc-input-group">
+            <label>你设的止盈线是多少？（赚多少就收）</label>
+            <input type="number" id="calcTakeProfit" value="15" placeholder="比如：15（就是赚15%就卖）">
+        </div>
+        <div class="calc-input-group">
+            <label>你现在是赚了还是亏了？（百分比，赚填正数，亏填负数）</label>
+            <input type="number" id="calcCurrentPnl" value="0" placeholder="比如：3.5 或 -5">
+        </div>
+        <button class="btn btn-primary" onclick="calcPreservation()">🧮 算一下</button>
+        <div class="calc-result" id="calcResult"></div>
+    </div>
+</section>
+
+<!-- TAB 4: 我的钱包 -->
+<section id="tab-trading" class="tab-content">
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h2 style="margin:0">💰 我的钱包</h2>
+            <button class="btn btn-outline btn-sm" onclick="resetSimulation()">🔄 重置模拟盘</button>
+        </div>
+        <div class="wallet-summary" id="walletSummary">
+            <div class="wallet-item"><div class="label">口袋里的钱</div><div class="value blue" id="walletCash">¥50,000</div></div>
+            <div class="wallet-item"><div class="label">基金上的钱</div><div class="value" id="walletMarket">¥0</div></div>
+            <div class="wallet-item"><div class="label">总共</div><div class="value" id="walletTotal">¥50,000</div></div>
+            <div class="wallet-item"><div class="label">赚了/亏了</div><div class="value green" id="walletPnl">+¥0 (0%)</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📦 我的持仓</h2>
+        <div id="positionsList"><p class="hint">还没动手，钱都在口袋里</p></div>
+    </div>
+
+    <div class="card">
+        <h2>📝 买卖历史</h2>
+        <div id="tradesList"><p class="hint">还没有交易记录</p></div>
+    </div>
+
+    <div class="card">
+        <h2>📊 成绩单</h2>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-item"><div class="stat-value" id="statSells">0</div><div class="stat-label">总共卖了几次</div></div>
+            <div class="stat-item"><div class="stat-value" id="statWins">0</div><div class="stat-label">赢了几次</div></div>
+            <div class="stat-item"><div class="stat-value" id="statWinRate">0%</div><div class="stat-label">胜率</div></div>
+            <div class="stat-item"><div class="stat-value" id="statProfitLoss">0</div><div class="stat-label">盈亏比</div></div>
+        </div>
+        <div class="stat-summary" id="statSummary"></div>
+    </div>
+</section>
+
+<!-- TAB: AI设置 -->
+<section id="tab-aisetting" class="tab-content">
+    <div class="card">
+        <h2>🔧 AI设置</h2>
+        <p class="hint">在这里设置AI助手的连接方式。你可以用本地AI（显卡跑vLLM）或者外接API（OpenAI兼容接口），想切哪个就用哪个。</p>
+
+        <div style="display:flex;gap:12px;margin-bottom:24px;padding:12px 16px;background:linear-gradient(135deg,#dfe6e9,#f0f2f5);border-radius:12px;">
+            <label style="display:flex;align-items:center;cursor:pointer;flex:1;">
+                <input type="radio" name="aiSwitch" value="local" id="aiSwitchLocal" checked style="width:20px;height:20px;margin-right:8px;accent-color:#0984e3;">
+                <span style="font-size:15px;font-weight:600;">🏠 本地AI（vLLM）</span>
+            </label>
+            <label style="display:flex;align-items:center;cursor:pointer;flex:1;">
+                <input type="radio" name="aiSwitch" value="remote" id="aiSwitchRemote" style="width:20px;height:20px;margin-right:8px;accent-color:#0984e3;">
+                <span style="font-size:15px;font-weight:600;">🌐 外接API</span>
+            </label>
+        </div>
+
+        <div id="aiLocalPanel">
+            <h3 style="font-size:16px;margin-bottom:16px;">🏠 本地AI设置</h3>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">API 地址</label>
+                <input type="text" id="aiLocalUrl" placeholder="http://127.0.0.1:8000/v1" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">填你本地 vLLM 的地址，最后带 /v1</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">模型名</label>
+                <input type="text" id="aiLocalModel" placeholder="anthropic-claude-4" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">vLLM 里跑的模型名字</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">API Key</label>
+                <input type="text" id="aiLocalKey" placeholder="sk-xxx" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">vLLM 的 API Key（默认 sk-xxx）</p>
+            </div>
+        </div>
+
+        <div id="aiRemotePanel" style="display:none;">
+            <h3 style="font-size:16px;margin-bottom:16px;">🌐 外接API设置</h3>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">API 地址</label>
+                <input type="text" id="aiRemoteUrl" placeholder="https://api.openai.com/v1" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">填外接 API 的地址（OpenAI 兼容接口）</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">模型名</label>
+                <input type="text" id="aiRemoteModel" placeholder="gpt-4o" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">外接 API 用的模型名字</p>
+            </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:#2d3436;">API Key</label>
+                <input type="text" id="aiRemoteKey" placeholder="sk-proj-xxx" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;transition:border-color 0.2s;">
+                <p style="font-size:12px;color:#636e72;margin-top:4px;">你的外接 API Key（点右边可以显示/隐藏）</p>
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveAiSettings()">💾 保存设置</button>
+        <button class="btn btn-outline" style="margin-left:8px" onclick="testAiConnection()">🔌 测试连接</button>
+        <div id="aiSettingResult" style="margin-top:16px;"></div>
+    </div>
+</section>
+
+<!-- TAB: AI回测 -->
+<section id="tab-backtest" class="tab-content">
+    <div class="card">
+        <h2>🤖 AI 模拟回测</h2>
+        <p class="hint">让 AI 用历史数据跑一遍交易，看看它能不能帮你赚到钱。选个品种，设个本金，点"开始回测"就出结果。</p>
+        <div class="calc-input-group">
+            <label>选个品种</label>
+            <select id="backtestAsset" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;">
+                <option value="510300|沪深300ETF">沪深300ETF（大盘）</option>
+                <option value="510500|中证500ETF">中证500ETF（中盘）</option>
+                <option value="513100|纳指ETF">纳指ETF（海外科技）</option>
+                <option value="518880|黄金ETF">黄金ETF（贵金属）</option>
+                <option value="159915|创业板ETF">创业板ETF（成长）</option>
+                <option value="588000|科创50ETF">科创50ETF（硬科技）</option>
+            </select>
+        </div>
+        <div class="calc-input-group">
+            <label>初始本金（元）</label>
+            <input type="number" id="backtestCapital" value="10000" min="1000" step="1000">
+        </div>
+        <div class="calc-input-group">
+            <label>策略风格</label>
+            <select id="backtestStrategy" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;">
+                <option value="conservative">🐢 稳健型（等更久再买，早点卖）</option>
+                <option value="balanced" selected>⚖️ 平衡型（不紧不慢）</option>
+                <option value="aggressive">🦁 激进型（敢于追涨杀跌）</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" onclick="runBacktest()">🚀 开始回测</button>
+        <div id="backtestResult" style="margin-top:20px;"></div>
+    </div>
+</section>
+
+<!-- TAB: 防套路检验 -->
+<section id="tab-stress" class="tab-content">
+    <div class="card">
+        <h2>🔬 防套路实战检验</h2>
+        <p class="hint">用过去一年的真实走势来检验 AI 的提醒准不准。看看如果听 AI 的，跟"凭感觉追涨杀跌"差多少。</p>
+        <div class="calc-input-group">
+            <label>选个品种</label>
+            <select id="stressAsset" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:10px;font-size:14px;">
+                <option value="510300|沪深300ETF">沪深300ETF（大盘）</option>
+                <option value="510500|中证500ETF">中证500ETF（中盘）</option>
+                <option value="513100|纳指ETF">纳指ETF（海外科技）</option>
+                <option value="518880|黄金ETF">黄金ETF（贵金属）</option>
+                <option value="159915|创业板ETF">创业板ETF（成长）</option>
+                <option value="588000|科创50ETF">科创50ETF（硬科技）</option>
+            </select>
+        </div>
+        <div class="calc-input-group">
+            <label>回看天数</label>
+            <input type="number" id="stressDays" value="365" min="90" step="30">
+        </div>
+        <button class="btn btn-primary" onclick="runStressTest()">🔬 开始检验</button>
+        <div id="stressResult" style="margin-top:20px;"></div>
+    </div>
+</section>
+
+<!-- TAB: 宏观仪表盘 -->
+<section id="tab-macro" class="tab-content">
+    <div class="card">
+        <h2>🌐 宏观仪表盘</h2>
+        <p class="hint">影响你钱包的几个大因素——VIX恐慌指数、美元指数、美债收益率等。宏观对了，选股就不至于太离谱。</p>
+        <div id="macroContent">
+            <p class="hint">点击"刷新数据"加载最新宏观指标...</p>
+            <button class="btn btn-primary" onclick="loadMacroDashboard()">🔄 刷新数据</button>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<!-- 买入弹窗 -->
+<div class="modal-overlay" id="buyModal">
+    <div class="modal-box">
+        <h3 id="buyModalTitle">🛒 买入基金</h3>
+        <div class="price-info" id="buyModalInfo"></div>
+        <div class="form-row">
+            <label>买多少股？（1手 = 100股）</label>
+            <input type="number" id="buyShares" value="100" step="100" min="100">
+        </div>
+        <div id="buyCostPreview" class="cost-preview"></div>
+        <div class="form-row">
+            <label>为什么买？（给自己写个理由）</label>
+            <input type="text" id="buyReason" placeholder="比如：跌到均线了，感觉要反弹">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-success" id="buyConfirm">✅ 确认买入</button>
+            <button class="btn btn-outline" id="buyCancel">👀 先等等</button>
+        </div>
+        <div id="buyResult" style="margin-top:8px"></div>
+    </div>
+</div>
+
+<!-- 卖出弹窗 -->
+<div class="modal-overlay" id="sellModal">
+    <div class="modal-box">
+        <h3 id="sellModalTitle">💰 卖出持仓</h3>
+        <div class="price-info" id="sellModalInfo"></div>
+        <div class="form-row">
+            <label>卖多少股？</label>
+            <input type="number" id="sellShares" value="100" step="100" min="100">
+        </div>
+        <div id="sellPnlPreview" class="cost-preview"></div>
+        <div class="form-row">
+            <label>为什么卖？</label>
+            <input type="text" id="sellReason" placeholder="比如：赚到目标了，落袋为安">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-danger" id="sellConfirm">💰 确认卖出</button>
+            <button class="btn btn-outline" id="sellCancel">👀 再等等</button>
+        </div>
+        <div id="sellResult" style="margin-top:8px"></div>
+    </div>
+</div>
+
+<!-- AI Chat Widget -->
+<div class="ai-chat-toggle">
+    <div class="ai-chat-tooltip">打开 NEO 助手</div>
+    <div class="ai-chat-btn" id="neoFloatBtn" onclick="toggleChat()">
+        <img id="neoBtnImg" src="/static/img/cartoons/btn/neo2_btn.png" alt="NEO" style="width:100%;height:100%;object-fit:cover;object-position:center top;">
+    </div>
+</div>
+
+<div class="ai-chat-panel" id="neoChatPanel">
+    <div class="ai-chat-header">
+        <div class="ai-chat-header-avatar" id="headerEmoji">
+            🛡️
+        </div>
+        <div class="ai-chat-header-info">
+            <h3>NEO — 你的NEO</h3>
+            <div class="ai-chat-header-status">在线</div>
+        </div>
+        <button class="ai-chat-close" onclick="toggleChat()">✕</button>
+    </div>
+    <div class="ai-chat-quick-tags">
+        <span class="ai-chat-quick-tag" onclick="sendQuickMsg('今天大盘怎么样？')">🏠 市场概况</span>
+        <span class="ai-chat-quick-tag" onclick="sendQuickMsg('有什么重要财经新闻？')">📰 新闻重点</span>
+        <span class="ai-chat-quick-tag" onclick="sendQuickMsg('帮我检查持仓风险')">⚡ 持仓风险</span>
+        <span class="ai-chat-quick-tag" onclick="sendQuickMsg('现在有什么买卖建议？')">💡 买卖建议</span>
+        <span class="ai-chat-quick-tag" onclick="sendQuickMsg('帮我分析这段消息有没有套路')">🕵️ 套路分析</span>
+    </div>
+    <div class="ai-chat-messages" id="neoMessages">
+        <div class="ai-chat-msg-ai">
+            <div class="msg-emoji">🛡️</div>
+            <div class="msg-bubble">
+                嘿，我是 NEO！你的NEO助手 🛡️<br><br>
+                有什么想问的，尽管找我聊～不管是市场行情、持仓分析，还是看不懂的投资术语，我都能用大白话给你解释清楚！
+            </div>
+        </div>
+    </div>
+    <div class="ai-chat-input-area">
+        <input type="text" id="neoInput" placeholder="给 NEO 发个消息..." onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="ai-chat-send" onclick="sendMessage()">➤</button>
+    </div>
+</div>
+
+<!-- 遮罩层 -->
+<div class="ai-chat-overlay" id="neoOverlay" onclick="toggleChat()"></div>
+</div>
+
+<script>
+// === 全局状态 ===
+let currentMode = 'PAPER';
+
+// === Tab切换 ===
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById('tab-' + tabId).classList.add('active');
+        if (tabId === 'trading') loadTradingData();
+        if (tabId === 'dashboard') loadAllData();
+        if (tabId === 'news') loadNews();
+        if (tabId === 'trends') loadTrends();
+    });
+});
+
+// === 模式切换 ===
+async function toggleMode() {
+    const newMode = currentMode === 'PAPER' ? 'REAL' : 'PAPER';
+    try {
+        const res = await fetch('/api/trade/mode', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({mode: newMode})
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentMode = newMode;
+            updateModeDisplay();
+            if (data.message) {
+                showToast(data.message);
+            }
+        }
+    } catch(e) {
+        showToast('切换模式出错：' + e.message);
+    }
+}
+
+function updateModeDisplay() {
+    const badge = document.getElementById('modeBadge');
+    if (currentMode === 'REAL') {
+        badge.className = 'mode-badge real';
+        badge.textContent = '🔴 实盘';
+    } else {
+        badge.className = 'mode-badge paper';
+        badge.textContent = '📝 模拟盘';
+    }
+}
+
+// 初始化加载模式
+async function loadCurrentMode() {
+    try {
+        const res = await fetch('/api/trade/mode');
+        const data = await res.json();
+        currentMode = data.mode || 'PAPER';
+        updateModeDisplay();
+    } catch(e) {
+        currentMode = 'PAPER';
+        updateModeDisplay();
+    }
+}
+
+// === 帮助中心下拉菜单 ===
+function toggleHelpMenu() {
+    const menu = document.getElementById('helpMenu');
+    const btn = document.getElementById('helpBtn');
+    menu.classList.toggle('show');
+    btn.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const dropdown = document.querySelector('.help-dropdown');
+    if (dropdown && !dropdown.contains(e.target)) {
+        const menu = document.getElementById('helpMenu');
+        const btn = document.getElementById('helpBtn');
+        if (menu && menu.classList.contains('show')) {
+            menu.classList.remove('show');
+            if (btn) btn.classList.remove('open');
+        }
+    }
+});
+
+// === Toast通知 ===
+function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:80px;right:20px;background:#1a1a2e;color:white;padding:14px 24px;border-radius:12px;z-index:2000;font-size:14px;box-shadow:0 4px 16px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease-in;max-width:360px;line-height:1.5;';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 3000);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+// === 系统公告时间 ===
+document.getElementById('noticeTime').textContent = '更新时间：' + new Date().toLocaleString('zh-CN');
+
+// === 首页数据 ===
+async function loadAllData() {
+    loadMarketRisk();
+    loadEtfList();
+    loadAlerts();
+}
+
+async function loadMarketRisk() {
+    try {
+        const res = await fetch('/api/market/risk');
+        const data = await res.json();
+        const dotMap = {green: '🟢', yellow: '🟡', red: '🔴'};
+        document.getElementById('lightDot').textContent = dotMap[data.level] || '🟢';
+        document.getElementById('lightText').textContent = data.text;
+        document.getElementById('riskExplanation').textContent = data.text;
+    } catch (e) {
+        document.getElementById('lightText').textContent = '数据还没来，先观望';
+        document.getElementById('riskExplanation').textContent = '网络正常的话，5秒后就会更新';
+    }
+}
+
+async function loadEtfList() {
+    try {
+        const res = await fetch('/api/etf/list');
+        const data = await res.json();
+        const tbody = document.getElementById('etfTableBody');
+        let html = '';
+        for (const etf of data) {
+            const change = etf.change_pct || 0;
+            const cls = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+            const sign = change > 0 ? '+' : '';
+            const arrow = change > 0 ? '↑' : (change < 0 ? '↓' : '—');
+            const status = change > 1.5 ? '涨得猛' : (change > 0 ? '小涨' : (change > -1.5 ? '小跌' : '跌得凶'));
+            html += `<tr><td>${etf.name}</td><td>${etf.category}</td><td>¥${(etf.price||0).toFixed(3)}</td><td class="${cls}">${sign}${change.toFixed(2)}%</td><td>${arrow} ${status}</td><td><button class="btn btn-success btn-sm" onclick="showBuyModal('${etf.code}','${etf.name}',${etf.price||0})">🛒 买入</button></td></tr>`;
+        }
+        tbody.innerHTML = html;
+        const now = new Date();
+        document.getElementById('updateTime').textContent = '上次更新：' + now.toLocaleTimeString('zh-CN');
+    } catch (e) {
+        document.getElementById('etfTableBody').innerHTML = '<tr><td colspan="6" class="center">数据获取中，等一下就好...</td></tr>';
+    }
+}
+
+async function loadAlerts() {
+    try {
+        const res = await fetch('/api/alerts');
+        const data = await res.json();
+        if (data.alerts && data.alerts.length > 0) {
+            let html = '';
+            for (const alert of data.alerts) {
+                let cls = 'alert-info';
+                let icon = 'ℹ️';
+                if (alert.level === 'danger') { cls = 'alert-danger'; icon = '🔴'; }
+                else if (alert.level === 'warning') { cls = 'alert-warning'; icon = '🟡'; }
+                else if (alert.level === 'success') { cls = 'alert-success'; icon = '🟢'; }
+                html += `<div class="alert ${cls}"><span class="alert-icon">${icon}</span><span>${alert.message}</span></div>`;
+            }
+            document.getElementById('alertsContainer').innerHTML = html;
+        } else {
+            document.getElementById('alertsContainer').innerHTML = '<div class="alert alert-success"><span class="alert-icon">🟢</span><span>目前一切正常，你的钱包很安稳！</span></div>';
+        }
+    } catch(e) {
+        document.getElementById('alertsContainer').innerHTML = '<p class="hint">正在扫描你的持仓...</p>';
+    }
+}
+
+</script>
+<script>
+// === 套路识别器 ===
+async function checkScam() {
+    const text = document.getElementById('scamText').value;
+    if (!text.trim()) {
+        document.getElementById('scamResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>先贴一点文字进去再检查！</span></div>';
+        return;
+    }
+    try {
+        const res = await fetch('/api/scam/detect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text.trim()})
+        });
+        const data = await res.json();
+        renderScamResult(data);
+    } catch (e) {
+        document.getElementById('scamResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>检查中...网络好像卡了一下</span></div>';
+    }
+}
+
+// === 财经新闻 ===
+async function loadNews() {
+    const container = document.getElementById('newsContainer');
+    container.innerHTML = '<p class="hint">正在抓取最新新闻...</p>';
+    try {
+        const res = await fetch('/api/news/list');
+        const data = await res.json();
+        if (data.success && data.news.length > 0) {
+            let html = '';
+            const categoryColors = {
+                '大盘': '#0984e3', '宏观': '#6c5ce7', '行业': '#27ae60',
+                '资金': '#e17a0c', '海外': '#e74c3c', '政策': '#9b59b6'
+            };
+            for (const n of data.news) {
+                const color = categoryColors[n.category] || '#636e72';
+                html += `<div style="padding:14px;border-bottom:1px solid #f0f0f0;display:flex;gap:12px;align-items:flex-start;">
+                    <span style="background:${color};color:white;padding:2px 10px;border-radius:6px;font-size:12px;font-weight:600;flex-shrink:0;">${n.category || '综合'}</span>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:14px;margin-bottom:4px;line-height:1.5;">${n.title}</div>
+                        <div style="font-size:13px;color:#636e72;line-height:1.5;">${n.summary || ''}</div>
+                        <div style="font-size:12px;color:#999;margin-top:4px;">${n.source || ''} · ${n.time || ''}</div>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<p class="hint">新闻暂时没抓到，等一下再来看看~</p>';
+        }
+    } catch (e) {
+        container.innerHTML = '<p class="hint">网络好像卡了一下，刷新试试~</p>';
+    }
+}
+
+async function analyzeNews() {
+    const container = document.getElementById('newsAiAnalysis');
+    container.innerHTML = '<p class="hint">NEO 正在看新闻...</p>';
+    try {
+        const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: '帮我总结一下最近的财经新闻，用大白话告诉我对散户有什么影响，现在该注意什么？'})
+        });
+        const data = await res.json();
+        if (data.success) {
+            container.innerHTML = `<div style="padding:16px;background:linear-gradient(135deg,#fff8e1,#ffefc1);border-radius:12px;font-size:14px;line-height:1.8;white-space:pre-wrap;">${data.response.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            container.innerHTML = '<p class="hint">NEO 打了个盹，再叫他一次~</p>';
+        }
+    } catch (e) {
+        container.innerHTML = '<p class="hint">NEO 网络卡了一下...</p>';
+    }
+}
+
+// === 趋势分析 ===
+async function loadTrends() {
+    const container = document.getElementById('trendList');
+    const summary = document.getElementById('trendSummary');
+    summary.textContent = '正在分析市场趋势...';
+    container.innerHTML = '<p class="hint">加载中...</p>';
+    try {
+        const res = await fetch('/api/trend/analysis');
+        const data = await res.json();
+        if (data.success) {
+            summary.textContent = data.summary;
+            let html = '';
+            for (const t of data.etf_trends) {
+                const change = t.change_pct || 0;
+                const changeClass = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+                const sign = change > 0 ? '+' : '';
+                html += `<div style="padding:12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:700;font-size:14px;">${t.name} <span style="font-weight:400;font-size:12px;color:#999;">(${t.code})</span></div>
+                        <div style="font-size:13px;color:#636e72;">现价：¥${(t.price||0).toFixed(3)} | ${sign}${change.toFixed(2)}%</div>
+                    </div>
+                    <div style="font-size:13px;font-weight:600;white-space:nowrap;">${t.trend}</div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        } else {
+            summary.textContent = '趋势分析暂时有点问题';
+            container.innerHTML = '<p class="hint">等一下再来看看~</p>';
+        }
+    } catch (e) {
+        summary.textContent = '趋势分析加载中...';
+    }
+}
+
+async function analyzeTrends() {
+    const container = document.getElementById('trendAiAdvice');
+    container.innerHTML = '<p class="hint">NEO 正在综合分析...</p>';
+    try {
+        const res = await fetch('/api/ai/analyze_market', {method: 'POST'});
+        const data = await res.json();
+        if (data.success) {
+            container.innerHTML = `<div style="padding:16px;background:linear-gradient(135deg,#e8f4fd,#d4ebf7);border-radius:12px;font-size:14px;line-height:1.8;white-space:pre-wrap;">${data.response.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            container.innerHTML = '<p class="hint">NEO 打了个盹，再叫他一次~</p>';
+        }
+    } catch (e) {
+        container.innerHTML = '<p class="hint">NEO 网络卡了一下...</p>';
+    }
+}
+
+function renderScamResult(data) {
+    let html = '';
+    const scoreClass = data.risk_level || 'safe';
+    const scoreLabel = {safe: '安全', caution: '有点问题', warning: '注意', danger: '大概率中招'}[scoreClass] || '未知';
+    const scoreEmoji = {safe: '😊', caution: '🤔', warning: '⚠️', danger: '🚨'}[scoreClass] || '❓';
+    
+    html += `<div style="text-align:center;margin-bottom:20px">`;
+    html += `<div class="scam-score ${scoreClass}">${data.risk_score || 0}分</div>`;
+    html += `<p style="font-size:18px;font-weight:700;margin-bottom:8px">${scoreEmoji} 这个${scoreLabel}</p>`;
+    html += `</div>`;
+    
+    if (data.total_hits === 0) {
+        html += '<div class="alert alert-success"><span class="alert-icon">😊</span><span>没发现什么明显的套路，不过也别太放松——有时候最危险的套路是你还没看到的那个</span></div>';
+    } else {
+        html += `<p style="margin-bottom:16px;font-size:15px">发现了 <strong>${data.total_hits}</strong> 个"风险信号"，给你一个个说：</p>`;
+        if (data.matches) {
+            for (const m of data.matches) {
+                const sevLabel = {high: '🔴 高危', medium: '🟡 中等', low: '🟢 低危'};
+                html += `<div class="scam-match">
+                    <div class="name">${sevLabel[m.severity]} ${m.name}</div>
+                    <div class="keywords">命中的词：${(m.hit_keywords||[]).join('、')}</div>
+                    <div class="explanation">${m.explanation}</div>
+                </div>`;
+            }
+        }
+    }
+    document.getElementById('scamResult').innerHTML = html;
+}
+
+function loadScamExamples() {
+    const examples = [
+        '🔥 最后3天！巴菲特也买了这只基金！即将暴涨50%！闭眼买就对了！错过就没机会了！',
+        '📈 大资金正在疯狂涌入沪深300！历史重演——就像2020年一样，现在是买入的最佳时机！',
+        '专家预测：这只ETF稳赚不赔，年化收益20%，三步走就能躺赚！',
+        '🎯 金叉信号已出现！均线多头排列，量价齐升，历史新高在望！',
+    ];
+    const randomExample = examples[Math.floor(Math.random() * examples.length)];
+    document.getElementById('scamText').value = randomExample;
+}
+
+// === 保本计算器 ===
+async function calcPreservation() {
+    const principal = parseFloat(document.getElementById('calcPrincipal').value) || 10000;
+    const stopLossPct = parseFloat(document.getElementById('calcStopLoss').value) || 8;
+    const takeProfitPct = parseFloat(document.getElementById('calcTakeProfit').value) || 15;
+    const currentPnlPct = parseFloat(document.getElementById('calcCurrentPnl').value) || 0;
+    
+    try {
+        const res = await fetch('/api/preservation/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                principal, stop_loss_pct: stopLossPct, take_profit_pct: takeProfitPct, current_pnl_pct: currentPnlPct
+            })
+        });
+        const data = await res.json();
+        renderCalcResult(data);
+    } catch (e) {
+        document.getElementById('calcResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>算了一下...好像出了点小问题</span></div>';
+    }
+}
+
+function renderCalcResult(data) {
+    let html = '';
+    html += `<div class="line status-line">${data.status_emoji} ${data.status_text}</div>`;
+    html += `<div class="line">你设的止损线是：亏了¥${data.max_loss}就卖（对应¥${data.stop_loss_price}）</div>`;
+    html += `<div class="line">你设的止盈线是：赚了¥${data.max_profit}就收（对应¥${data.take_profit_price}）</div>`;
+    html += `<div class="line warning-line">${data.stop_warning}</div>`;
+    html += `<div class="line safe-line">${data.profit_warning}</div>`;
+    document.getElementById('calcResult').innerHTML = html;
+}
+
+</script>
+<script>
+// === 模拟盘 ===
+async function loadTradingData() {
+    loadAccount();
+    loadPositions();
+    loadTrades();
+    loadStats();
+}
+
+async function loadAccount() {
+    try {
+        const res = await fetch('/api/account');
+        const data = await res.json();
+        document.getElementById('walletCash').textContent = '¥' + data.cash.toLocaleString();
+        document.getElementById('walletMarket').textContent = '¥' + data.market_value.toLocaleString();
+        document.getElementById('walletTotal').textContent = '¥' + data.total_capital.toLocaleString();
+        const pnlEl = document.getElementById('walletPnl');
+        if (data.pnl >= 0) {
+            pnlEl.className = 'value green';
+            pnlEl.textContent = '+¥' + data.pnl.toLocaleString() + ' (' + data.pnl_pct.toFixed(1) + '%)';
+        } else {
+            pnlEl.className = 'value red';
+            pnlEl.textContent = '-¥' + Math.abs(data.pnl).toLocaleString() + ' (' + data.pnl_pct.toFixed(1) + '%)';
+        }
+    } catch (e) {
+        // silent fail
+    }
+}
+
+async function loadPositions() {
+    try {
+        const res = await fetch('/api/positions');
+        const data = await res.json();
+        if (data.length === 0) {
+            document.getElementById('positionsList').innerHTML = '<p class="hint">还没动手，钱都在口袋里</p>';
+            return;
+        }
+        let html = '';
+        for (const p of data) {
+            const pnlColor = p.pnl >= 0 ? 'green' : 'red';
+            const pnlSign = p.pnl >= 0 ? '+' : '';
+            html += `<div class="position-card">
+                <div class="info">
+                    <div class="name">${p.name} (${p.code})</div>
+                    <div class="detail">买了${p.shares}股，成本¥${p.avg_price}，现价¥${p.current_price}</div>
+                </div>
+                <div class="pnl ${pnlColor}">${pnlSign}¥${Math.abs(p.pnl).toFixed(0)} (${pnlSign}${p.pnl_pct.toFixed(1)}%)</div>
+                <div class="actions"><button class="btn btn-danger btn-sm" onclick="showSellModal('${p.code}','${p.name}',${p.current_price},${p.shares},${p.avg_price})">💰 卖出</button></div>
+            </div>`;
+        }
+        document.getElementById('positionsList').innerHTML = html;
+    } catch (e) {
+        document.getElementById('positionsList').innerHTML = '<p class="hint">持仓加载中...</p>';
+    }
+}
+
+async function loadTrades() {
+    try {
+        const res = await fetch('/api/trades');
+        const data = await res.json();
+        if (data.length === 0) {
+            document.getElementById('tradesList').innerHTML = '<p class="hint">还没有交易记录</p>';
+            return;
+        }
+        let html = '';
+        for (const t of data) {
+            const cls = t.action === 'BUY' ? 'trade-buy' : 'trade-sell';
+            const word = t.action === 'BUY' ? '买入' : '卖出';
+            const pnlStr = t.pnl !== null ? ' | 盈亏：¥' + t.pnl.toFixed(0) : '';
+            html += `<div class="trade-item">
+                <span class="${cls}">${word}</span> ${t.name} ${t.shares}股 @ ¥${t.price} - ${t.trade_date || ''}${pnlStr}
+            </div>`;
+        }
+        document.getElementById('tradesList').innerHTML = html;
+    } catch (e) {
+        document.getElementById('tradesList').innerHTML = '<p class="hint">加载中...</p>';
+    }
+}
+
+async function loadStats() {
+    try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('statSells').textContent = data.total_sells;
+        document.getElementById('statWins').textContent = data.wins;
+        document.getElementById('statWinRate').textContent = data.win_rate + '%';
+        document.getElementById('statProfitLoss').textContent = data.profit_loss_ratio;
+        document.getElementById('statSummary').textContent = data.summary || '';
+    } catch (e) {
+        // silent
+    }
+}
+
+async function resetSimulation() {
+    if (!confirm('确定要重置模拟盘吗？所有交易记录都会清零，回到¥50,000')) return;
+    try {
+        const res = await fetch('/api/reset', {method: 'POST'});
+        const data = await res.json();
+        showToast(data.message || '重置成功！');
+        loadTradingData();
+    } catch (e) {
+        showToast('重置成功');
+        loadTradingData();
+    }
+}
+
+// === 交易弹窗 ===
+let _tradeState = { buyCode: '', buyName: '', buyPrice: 0, sellCode: '', sellName: '', sellPrice: 0, sellMaxShares: 0, sellAvgPrice: 0 };
+
+function showBuyModal(code, name, price) {
+    _tradeState.buyCode = code;
+    _tradeState.buyName = name;
+    _tradeState.buyPrice = price;
+    document.getElementById('buyModalTitle').textContent = '🛒 买入 ' + name;
+    document.getElementById('buyModalInfo').innerHTML = `代码：${code} | 现价：¥${price.toFixed(3)}`;
+    document.getElementById('buyShares').value = 100;
+    document.getElementById('buyReason').value = '';
+    document.getElementById('buyResult').innerHTML = '';
+    updateBuyPreview();
+    document.getElementById('buyModal').classList.add('show');
+}
+
+function hideBuyModal() {
+    document.getElementById('buyModal').classList.remove('show');
+}
+
+function updateBuyPreview() {
+    const shares = parseInt(document.getElementById('buyShares').value) || 0;
+    const cost = shares * _tradeState.buyPrice;
+    document.getElementById('buyCostPreview').innerHTML = `预计花费：<span style="color:#e17a0c">¥${cost.toFixed(0)}</span>（${shares}股 × ¥${_tradeState.buyPrice.toFixed(3)}）`;
+}
+
+async function doBuy() {
+    const shares = parseInt(document.getElementById('buyShares').value) || 100;
+    const reason = document.getElementById('buyReason').value;
+    if (shares < 1) {
+        document.getElementById('buyResult').innerHTML = '<div class="error-msg">至少买1股呀！</div>';
+        return;
+    }
+    try {
+        const res = await fetch('/api/trade/buy', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                code: _tradeState.buyCode,
+                name: _tradeState.buyName,
+                shares: shares,
+                price: _tradeState.buyPrice,
+                reason: reason
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('buyResult').innerHTML = `<div class="success-msg">✅ ${data.message}</div>`;
+            setTimeout(() => { hideBuyModal(); loadTradingData(); loadAllData(); }, 1200);
+        } else {
+            document.getElementById('buyResult').innerHTML = `<div class="error-msg">⚠️ ${data.reason || '出了点小问题'}</div>`;
+        }
+    } catch (e) {
+        document.getElementById('buyResult').innerHTML = '<div class="error-msg">网络卡了一下，再试一次</div>';
+    }
+}
+
+function showSellModal(code, name, price, maxShares, avgPrice) {
+    _tradeState.sellCode = code;
+    _tradeState.sellName = name;
+    _tradeState.sellPrice = price;
+    _tradeState.sellMaxShares = maxShares;
+    _tradeState.sellAvgPrice = avgPrice;
+    document.getElementById('sellModalTitle').textContent = '💰 卖出 ' + name;
+    const costLine = `成本价：¥${avgPrice} | 你的股数：${maxShares}股`;
+    document.getElementById('sellModalInfo').innerHTML = costLine;
+    const initial = Math.min(maxShares, maxShares - maxShares % 100);
+    document.getElementById('sellShares').value = initial || maxShares;
+    document.getElementById('sellShares').max = maxShares;
+    document.getElementById('sellReason').value = '';
+    document.getElementById('sellResult').innerHTML = '';
+    updateSellPreview();
+    document.getElementById('sellModal').classList.add('show');
+}
+
+function hideSellModal() {
+    document.getElementById('sellModal').classList.remove('show');
+}
+
+function updateSellPreview() {
+    const shares = parseInt(document.getElementById('sellShares').value) || 0;
+    const revenue = shares * _tradeState.sellPrice;
+    const cost = shares * _tradeState.sellAvgPrice;
+    const pnl = revenue - cost;
+    const pnlText = pnl >= 0 
+        ? `<span style="color:#00b369">赚 ¥${pnl.toFixed(0)}</span>`
+        : `<span style="color:#e17a0c">亏 ¥${Math.abs(pnl).toFixed(0)}</span>`;
+    document.getElementById('sellPnlPreview').innerHTML = `预计到账：¥${revenue.toFixed(0)} | ${pnlText}`;
+}
+
+async function doSell() {
+    const shares = parseInt(document.getElementById('sellShares').value) || 100;
+    const reason = document.getElementById('sellReason').value;
+    if (shares < 1) {
+        document.getElementById('sellResult').innerHTML = '<div class="error-msg">至少卖1股呀！</div>';
+        return;
+    }
+    if (shares > _tradeState.sellMaxShares) {
+        document.getElementById('sellResult').innerHTML = `<div class="error-msg">你只买了${_tradeState.sellMaxShares}股，想卖${shares}股？</div>`;
+        return;
+    }
+    try {
+        const res = await fetch('/api/trade/sell', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                code: _tradeState.sellCode,
+                name: _tradeState.sellName,
+                shares: shares,
+                price: _tradeState.sellPrice,
+                reason: reason
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('sellResult').innerHTML = `<div class="success-msg">✅ ${data.message}</div>`;
+            setTimeout(() => { hideSellModal(); loadTradingData(); loadAllData(); }, 1200);
+        } else {
+            document.getElementById('sellResult').innerHTML = `<div class="error-msg">⚠️ ${data.reason || '出了点小问题'}</div>`;
+        }
+    } catch (e) {
+        document.getElementById('sellResult').innerHTML = '<div class="error-msg">网络卡了一下，再试一次</div>';
+    }
+}
+
+// 弹窗事件绑定
+document.addEventListener('DOMContentLoaded', () => {
+    loadCurrentMode();
+    loadAllData();
+    // Buy modal
+    document.getElementById('buyCancel')?.addEventListener('click', hideBuyModal);
+    document.getElementById('buyConfirm')?.addEventListener('click', doBuy);
+    document.getElementById('buyShares')?.addEventListener('input', updateBuyPreview);
+    // Sell modal
+    document.getElementById('sellCancel')?.addEventListener('click', hideSellModal);
+    document.getElementById('sellConfirm')?.addEventListener('click', doSell);
+    document.getElementById('sellShares')?.addEventListener('input', updateSellPreview);
+    // Click overlay to close
+    document.getElementById('buyModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'buyModal') hideBuyModal();
+    });
+    document.getElementById('sellModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'sellModal') hideSellModal();
+    });
+
+    // === AI Agent Chat ===
+    const aiToggle = document.getElementById('aiChatToggle');
+    if (aiToggle) {
+        aiToggle.addEventListener('click', () => {
+            const win = document.getElementById('aiChatWindow');
+            const badge = document.getElementById('aiChatBadge');
+            if (!win.classList.contains('show')) {
+                win.classList.add('show');
+                badge.style.display = 'none';
+                document.getElementById('aiChatInput').focus();
+            } else {
+                win.classList.remove('show');
+            }
+        });
+        document.getElementById('aiChatClose').addEventListener('click', () => {
+            document.getElementById('aiChatWindow').classList.remove('show');
+        });
+    }
+});
+
+// === AI Agent Chat Functions ===
+function addChatMsg(role, text) {
+    const container = document.getElementById('aiChatMessages');
+    const div = document.createElement('div');
+    if (role === 'ai') {
+        div.className = 'ai-chat-msg ai';
+        div.innerHTML = '<div class="ai-msg-label">NEO</div><div class="ai-msg-text">' + text.replace(/\n/g, '<br>') + '</div>';
+    } else {
+        div.className = 'ai-chat-msg user';
+        div.innerHTML = '<div class="user-msg-label">你</div><div class="ai-msg-text">' + text.replace(/\n/g, '<br>') + '</div>';
+    }
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+    const container = document.getElementById('aiChatMessages');
+    const div = document.createElement('div');
+    div.className = 'ai-chat-typing';
+    div.id = 'aiTypingIndicator';
+    div.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+    const el = document.getElementById('aiTypingIndicator');
+    if (el) el.remove();
+}
+
+// AI Chat 面板控制
+function toggleChat() {
+    var panel = document.getElementById('neoChatPanel');
+    var overlay = document.getElementById('neoOverlay');
+    var badge = document.getElementById('neoBadge');
+    if (!panel) return;
+    if (panel.classList.contains('active')) {
+        panel.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+    } else {
+        panel.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        if (badge) badge.classList.remove('show');
+        var msgs = document.getElementById('neoMessages');
+        if (msgs) msgs.scrollTop = msgs.scrollHeight;
+        var inp = document.getElementById('neoInput');
+        if (inp) inp.focus();
+    }
+}
+
+function getEmotionAvatar(text) {
+    if (!text) return '🛡️';
+    var t = text.toLowerCase();
+    if (/风险|危险|注意|小心|别买|别抄底|大跌|暴跌|跌停|止损|套牢/.test(t)) return '⚠️';
+    if (/分析|研究|看看|思考|数据|图表|技术|基本面/.test(t)) return '🤔';
+    if (/工作|忙|处理中/.test(t)) return '💼';
+    if (/赚|涨|红|发财|暴富|盈利|收益|大涨|暴涨/.test(t)) return '💰';
+    if (/建议|听我的|相信我|没错|一定/.test(t)) return '👍';
+    if (/保本|守住|不亏|稳健|安全/.test(t)) return '🛡️';
+    if (/无语|无奈|服了|晕/.test(t)) return '😅';
+    return '🛡️';
+}
+
+async function sendAiMsg() {
+    var input = document.getElementById('neoInput');
+    var messages = document.getElementById('neoMessages');
+    if (!input || !messages) return;
+    var text = input.value.trim();
+    if (!text) return;
+    
+    // 添加用户消息
+    var userDiv = document.createElement('div');
+    userDiv.className = 'ai-chat-msg-user';
+    userDiv.innerHTML = '<div class="msg-bubble">' + text + '</div>';
+    messages.appendChild(userDiv);
+    input.value = '';
+    
+    // 显示思考中
+    var thinkDiv = document.createElement('div');
+    thinkDiv.className = 'ai-chat-msg-ai';
+    thinkDiv.id = 'neoThinking';
+    thinkDiv.innerHTML = '<div class="msg-emoji">🤔</div><div class="msg-bubble ai-chat-thinking"><span></span><span></span><span></span></div>';
+    messages.appendChild(thinkDiv);
+    messages.scrollTop = messages.scrollHeight;
+    
+    try {
+        const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: text})
+        });
+        const data = res.json();
+        // 移除思考动画
+        var el = document.getElementById('neoThinking');
+        if (el) el.remove();
+        if (data.success) {
+            addAiReply(data.response);
+        } else {
+            addAiReply('（NEO卡了一下...）出了点小问题，再试一次吧！');
+        }
+    } catch (e) {
+        var el = document.getElementById('neoThinking');
+        if (el) el.remove();
+        addAiReply('（NEO正在思考中...）网络好像卡了一下，再试一次！');
+    }
+}
+
+function addAiReply(text) {
+    var messages = document.getElementById('neoMessages');
+    if (!messages) return;
+    var img = getEmotionAvatar(text);
+    var div = document.createElement('div');
+    div.className = 'ai-chat-msg-ai';
+    div.innerHTML = '<div class="msg-emoji">' + img + '</div><div class="msg-bubble">' + text + '</div>';
+    messages.appendChild(div);
+    var headerAvatar = document.getElementById('headerAvatar');
+    var floatAvatar = document.getElementById('floatAvatar');
+    if (headerEmoji) headerEmoji.textContent = img;
+        messages.scrollTop = messages.scrollHeight;
+}
+
+// === 个股搜索 + AI分析 ===
+async function searchStock() {
+    const query = document.getElementById('stockSearchInput').value.trim();
+    const container = document.getElementById('stockSearchResult');
+    if (!query) {
+        container.innerHTML = '<p class="hint">输入一个股票代码或名字试试~</p>';
+        return;
+    }
+    container.innerHTML = '<p class="hint">正在查...</p>';
+    try {
+        const res = await fetch('/api/stock/search', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query})
+        });
+        const data = await res.json();
+        if (!data.success) {
+            container.innerHTML = `<div class="alert alert-warning"><span>⚠️</span><span>${data.reason || '查了一下，暂时没结果'}</span></div>`;
+            return;
+        }
+        if (data.count === 0) {
+            container.innerHTML = '<p class="hint">没找到叫这个名字或代码的股票，再试试？</p>';
+            return;
+        }
+
+        let html = '<div style="display:grid;gap:16px;">';
+        for (const s of data.results) {
+            const changeClass = s.change_pct > 0 ? 'up' : (s.change_pct < 0 ? 'down' : '');
+            const sign = s.change_pct > 0 ? '+' : '';
+            const arrow = s.change_pct > 0 ? '🔴' : (s.change_pct < 0 ? '🟢' : '⚪');
+            const peStr = s.pe === Infinity ? '∞' : s.pe.toFixed(1);
+            const mkStr = s.total_market >= 1e9 ? (s.total_market / 1e9).toFixed(1) + '亿' : (s.total_market / 1e6).toFixed(1) + '万';
+            
+            html += `
+            <div style="border:2px solid #e8eaed;border-radius:14px;padding:16px;background:#f8f9fa;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:20px;font-weight:700;">${s.name}</span>
+                        <span style="font-size:14px;color:#636e72;margin-left:8px;">${s.code}</span>
+                        <span style="font-size:12px;color:white;background:#0984e3;padding:2px 8px;border-radius:6px;margin-left:8px;">${s.sector}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:22px;font-weight:700;">¥${s.price.toFixed(3)}</div>
+                        <div style="font-size:15px;font-weight:600;${changeClass ? 'color:'+(s.change_pct>0?'#e74c3c':'#27ae60'):'color:#636e72'}">${sign}${s.change_pct.toFixed(2)}% ${arrow}</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:13px;margin-bottom:12px;">
+                    <div><span style="color:#999;">今开</span><div style="font-weight:600;">${s.open.toFixed(3)}</div></div>
+                    <div><span style="color:#999;">最高</span><div style="font-weight:600;color:#e74c3c;">${s.high.toFixed(3)}</div></div>
+                    <div><span style="color:#999;">最低</span><div style="font-weight:600;color:#27ae60;">${s.low.toFixed(3)}</div></div>
+                    <div><span style="color:#999;">昨收</span><div style="font-weight:600;">${s.prev_close.toFixed(3)}</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:13px;">
+                    <div><span style="color:#999;">成交量</span><div style="font-weight:600;">${(s.volume/1000).toFixed(0)}K手</div></div>
+                    <div><span style="color:#999;">成交额</span><div style="font-weight:600;">${(s.amount/1e6).toFixed(1)}万</div></div>
+                    <div><span style="color:#999;">换手率</span><div style="font-weight:600;">${s.turnover.toFixed(2)}%</div></div>
+                    <div><span style="color:#999;">总市值</span><div style="font-weight:600;">${mkStr}</div></div>
+                </div>
+                <div style="font-size:13px;margin-top:8px;">
+                    <span style="color:#999;">市盈率(动态):</span> <strong>${peStr}</strong>
+                    <span style="margin-left:16px;color:#999;">振幅:</span> <strong>${s.amplitude.toFixed(2)}%</strong>
+                </div>
+                <div style="margin-top:12px;padding:10px;background:white;border-radius:10px;font-size:14px;line-height:1.6;">
+                    <div style="font-weight:600;margin-bottom:4px;">NEO 快速判断：</div>
+                    ${getStockTrendText(s.change_pct)}
+                </div>
+                <button class="btn btn-primary" style="margin-top:12px;width:100%;" onclick="analyzeSingleStock('${s.code}','${s.name}',${s.price},${s.change_pct},${s.pe === Infinity ? 9999 : s.pe},${s.turnover})">🧠 让NEO深度分析 ${s.name}</button>
+            </div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = '<p class="hint">查了一下，网络有点卡~</p>';
+    }
+}
+
+function getStockTrendText(changePct) {
+    if (changePct > 2.5) return '🔴 涨得挺猛！小心别在高位追高接盘。';
+    else if (changePct > 1.5) return '🟢 势头不错在涨，但别一把梭哈，留点子弹。';
+    else if (changePct > 0.3) return '🟢 稳稳小涨，不急不躁挺好的。';
+    else if (changePct > -0.3) return '🟡 横盘整理中，没啥大动静，先观望。';
+    else if (changePct > -1.5) return '🟡 小幅回调，正常的，别慌。';
+    else if (changePct > -2.5) return '🔴 跌得有点多了，看看是不是该设个止损线了。';
+    else return '🔴 跌得有点凶！小心庄家甩卖，先看看再动手。';
+}
+
+async function analyzeSingleStock(code, name, price, changePct, pe, turnover) {
+    const container = document.getElementById('stockSearchResult');
+    // Find the last search result card and append AI analysis
+    const aiQuery = `帮我深度分析一下 ${name}（${code}），现在价格 ¥${price}，涨跌幅 ${changePct}%，市盈率 ${pe.toFixed(1)}，换手率 ${turnover.toFixed(2)}%。用大白话告诉我：1) 这只股票是做什么的？2) 现在的价格贵不贵？3) 短期和中期趋势怎么样？4) 对普通散户有什么建议？`;
+    container.innerHTML += '<div class="alert alert-info"><span>🧠</span><span>NEO正在深度分析...</span></div>';
+    try {
+        const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: aiQuery})
+        });
+        const data = await res.json();
+        const lastAlert = container.querySelector('.alert.alert-info:last-child');
+        if (lastAlert) {
+            const reply = data.reply || data.answer || 'NEO说：数据来了，让我看看...';
+            lastAlert.innerHTML = `<div style="line-height:1.8;">🧠 <strong>NEO深度分析</strong><br><br>${reply.replace(/\n/g, '<br>')}</div>`;
+        }
+    } catch (e) {
+        container.innerHTML = container.innerHTML.replace('NEO正在深度分析...', 'NEO说：网络有点卡，等下再问问~');
+    }
+}
+
+// === A股监控 ===
+// === A股监控 ===
+async function loadStocks() {
+    const tbody = document.getElementById('stockTableBody');
+    const banner = document.getElementById('stockAlertBanner');
+    tbody.innerHTML = '<tr><td colspan="6" class="center">加载中...</td></tr>';
+    banner.innerHTML = '';
+    try {
+        const res = await fetch('/api/stock/list');
+        const data = await res.json();
+        if (data.length > 0) {
+            let html = '';
+            let dangerCount = 0, warningCount = 0;
+            const dangerTips = [];
+            for (const s of data) {
+                const change = s.change_pct || 0;
+                const cls = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+                const sign = change > 0 ? '+' : '';
+                // 信号灯 + 大白话
+                let light = '🟡';
+                let plain = '正常波动，不用慌';
+                if (change <= -3) { light = '🔴'; plain = '跌得有点凶，注意！'; dangerCount++; dangerTips.push(s.name); }
+                else if (change <= -1.5) { light = '🟠'; plain = '小幅下跌，多看看再决定'; warningCount++; }
+                else if (change >= 3) { light = '🔴'; plain = '涨得太猛，小心高位接盘！'; warningCount++; }
+                else if (change >= 1.5) { light = '🟡'; plain = '小幅上涨，保持关注'; }
+                html += `<tr><td>${s.name}</td><td>${s.code || ''}</td><td>${s.sector || ''}</td><td>¥${(s.price||0).toFixed(2)}</td><td class="${cls}">${sign}${change.toFixed(2)}%</td><td>${light}</td><td>${plain}</td></tr>`;
+            }
+            tbody.innerHTML = html;
+            document.getElementById('stockUpdateTime').textContent = '上次更新：' + new Date().toLocaleTimeString('zh-CN');
+            if (dangerCount > 0) {
+                banner.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">🔴</span><span>注意！${dangerTips.join('、')} 跌得比较凶，小心别急着抄底！</span></div>`;
+            } else if (warningCount > 0) {
+                banner.innerHTML = `<div class="alert alert-warning"><span class="alert-icon">🟡</span><span>市场有些波动，保持关注，别太冲动</span></div>`;
+            } else {
+                banner.innerHTML = `<div class="alert alert-success"><span class="alert-icon">🟢</span><span>A股今天比较稳，大家钱包都还安生</span></div>`;
+            }
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="center">数据暂时没抓到，等一下再来看看~</td></tr>';
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="center">网络卡了一下，刷新试试~</td></tr>';
+    }
+}
+
+function analyzeStocks() {
+    document.getElementById('stockAiAdvice').innerHTML = '<p class="hint">NEO 正在看A股...</p>';
+    document.getElementById('stockChatArea').style.display = 'block';
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: '帮我分析下现在的A股市场情况，用大白话告诉普通人：现在大盘是冷是热？哪些板块值得关注？现在该冲还是该苟？'})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('stockAiAdvice').innerHTML = `<div style="padding:16px;background:linear-gradient(135deg,#e8f4fd,#d4ebf7);border-radius:12px;font-size:14px;line-height:1.8;white-space:pre-wrap;">${data.response.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            document.getElementById('stockAiAdvice').innerHTML = '<p class="hint">NEO 打了个盹，再叫他一次~</p>';
+        }
+    }).catch(() => {
+        document.getElementById('stockAiAdvice').innerHTML = '<p class="hint">NEO 网络卡了一下...</p>';
+    });
+}
+
+function stockChatAsk() {
+    const input = document.getElementById('stockChatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    document.getElementById('stockAiAdvice').innerHTML += `<div style="margin-top:12px;padding:10px;background:#f8f9fa;border-radius:8px;">🗣️ <strong>你问：</strong>${text}</div>`;
+    input.value = '';
+    document.getElementById('stockAiAdvice').innerHTML += '<div class="hint">NEO 正在回答...</div>';
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: '关于A股股票：' + text + '。用大白话回答，让8岁小孩和80岁老奶奶都能听懂。'})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('stockAiAdvice').innerHTML += `<div style="margin-top:8px;padding:12px;background:#fff8e1;border-radius:8px;font-size:14px;line-height:1.8;white-space:pre-wrap;"><strong>NEO说：</strong>${data.response.replace(/\n/g, '<br>')}</div>`;
+        }
+    }).catch(() => {
+        document.getElementById('stockAiAdvice').innerHTML += '<p class="hint">NEO 网络卡了一下...</p>';
+    });
+}
+
+// === 黄金白银行情 ===
+async function loadGold() {
+    const tbody = document.getElementById('goldTableBody');
+    const banner = document.getElementById('goldAlertBanner');
+    tbody.innerHTML = '<tr><td colspan="6" class="center">加载中...</td></tr>';
+    banner.innerHTML = '';
+    try {
+        const res = await fetch('/api/gold/list');
+        const data = await res.json();
+        if (data.length > 0) {
+            let html = '';
+            let anyDanger = false;
+            for (const g of data) {
+                const change = g.change_pct || 0;
+                const cls = change > 0 ? 'up' : (change < 0 ? 'down' : '');
+                const sign = change > 0 ? '+' : '';
+                let light = '🟢';
+                let plain = '稳当得很，继续当压箱底宝贝';
+                if (change >= 2) { light = '🟡'; plain = '金价大涨，避险情绪升温'; anyDanger = true; }
+                else if (change <= -2) { light = '🟡'; plain = '金价回调，可能市场在回温'; anyDanger = true; }
+                else if (change <= -1) { light = '🟢'; plain = '小跌，黄金还是稳的'; }
+                else if (change >= 1) { light = '🟢'; plain = '小涨，黄金在发光'; }
+                html += `<tr><td>${g.name}</td><td>${g.category || ''}</td><td>${g.price ? '¥' + g.price.toFixed(2) : '-'}</td><td class="${cls}">${sign}${change.toFixed(2)}%</td><td>${light}</td><td>${plain}</td></tr>`;
+            }
+            tbody.innerHTML = html;
+            document.getElementById('goldUpdateTime').textContent = '上次更新：' + new Date().toLocaleTimeString('zh-CN');
+            if (anyDanger) {
+                banner.innerHTML = `<div class="alert alert-warning"><span class="alert-icon">🏆</span><span>黄金有动静了！黄金一动，说明全球市场在变化，留心自己的钱包</span></div>`;
+            } else {
+                banner.innerHTML = `<div class="alert alert-success"><span class="alert-icon">🏆</span><span>黄金安安静静，市场比较平稳</span></div>`;
+            }
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="center">数据暂时没抓到，等一下再来看看~</td></tr>';
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="center">网络卡了一下，刷新试试~</td></tr>';
+    }
+}
+
+function analyzeGold() {
+    document.getElementById('goldAiAdvice').innerHTML = '<p class="hint">NEO 正在看黄金...</p>';
+    document.getElementById('goldChatArea').style.display = 'block';
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: '帮我分析下现在的黄金市场，用大白话告诉普通人：金价现在是高还是低？全球形势怎么样？现在买黄金靠谱吗？'})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('goldAiAdvice').innerHTML = `<div style="padding:16px;background:linear-gradient(135deg,#fff8e1,#ffefc1);border-radius:12px;font-size:14px;line-height:1.8;white-space:pre-wrap;">${data.response.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            document.getElementById('goldAiAdvice').innerHTML = '<p class="hint">NEO 打了个盹，再叫他一次~</p>';
+        }
+    }).catch(() => {
+        document.getElementById('goldAiAdvice').innerHTML = '<p class="hint">NEO 网络卡了一下...</p>';
+    });
+}
+
+function goldChatAsk() {
+    const input = document.getElementById('goldChatInput');
+    const text = input.value.trim();
+    if (!text) return;
+    document.getElementById('goldAiAdvice').innerHTML += `<div style="margin-top:12px;padding:10px;background:#f8f9fa;border-radius:8px;">🗣️ <strong>你问：</strong>${text}</div>`;
+    input.value = '';
+    document.getElementById('goldAiAdvice').innerHTML += '<div class="hint">NEO 正在回答...</div>';
+    fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: '关于黄金：' + text + '。用大白话回答，让8岁小孩和80岁老奶奶都能听懂。'})
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById('goldAiAdvice').innerHTML += `<div style="margin-top:8px;padding:12px;background:#fff8e1;border-radius:8px;font-size:14px;line-height:1.8;white-space:pre-wrap;"><strong>NEO说：</strong>${data.response.replace(/\n/g, '<br>')}</div>`;
+        }
+    }).catch(() => {
+        document.getElementById('goldAiAdvice').innerHTML += '<p class="hint">NEO 网络卡了一下...</p>';
+    });
+}
+
+</script>
+
+<!-- 左右卡通装饰 -->
+<div class="cartoon-decor cartoon-decor-left" id="cartoonLeft">
+    <img src="/static/img/cartoons/正常状态.png" alt="NEO Left" id="cartoonLeftImg">
+</div>
+<div class="cartoon-decor cartoon-decor-right" id="cartoonRight">
+    <img src="/static/img/cartoons/注意风险.png" alt="NEO Right" id="cartoonRightImg">
+</div>
+
+<script>
+// 卡通图片轮换
+const cartoonImages = [
+    '正常状态.png', '工作中勿扰.png', '注意风险.png', '听我的没错.png',
+    '嘿嘿被你看穿了.png', '这个有问题.png', '好感动.png', '真的吗嘿嘿.png',
+    '满脑疑问.png', '亏麻了.png', '研究研究.png', '干嘛呢.png',
+    '保本.png', '困死老娘了.png'
+];
+
+function randomCartoon() {
+    return cartoonImages[Math.floor(Math.random() * cartoonImages.length)];
+}
+
+function switchCartoon(imgId) {
+    const imgEl = document.getElementById(imgId);
+    if (imgEl) {
+        imgEl.style.opacity = '0';
+        setTimeout(() => {
+            imgEl.src = '/static/img/cartoons/' + randomCartoon();
+            imgEl.style.opacity = '1';
+            imgEl.style.transition = 'opacity 1s ease';
+        }, 500);
+    }
+}
+
+// 每8秒轮换一次，左右错开
+setInterval(() => switchCartoon('cartoonLeftImg'), 8000);
+    setInterval(() => switchCartoon('cartoonRightImg'), 10000);
+
+// 浮动按钮图片自动轮换（所有卡通图片，3秒换一张）
+const btnImages = [
+        'btn/neo10_btn.png',
+        'btn/neo11_btn.png',
+        'btn/neo12_btn.png',
+        'btn/neo13_btn.png',
+        'btn/neo14_btn.png',
+        'btn/neo15_btn.png',
+        'btn/neo16_btn.png',
+        'btn/neo17_btn.png',
+        'btn/neo2_btn.png',
+        'btn/neo3_btn.png',
+        'btn/neo4_btn.png',
+        'btn/neo5_btn.png',
+        'btn/neo6_btn.png',
+        'btn/neo7_btn.png',
+        'btn/neo8_btn.png',
+        'btn/neo9_btn.png',
+        '不是吧疯子.png',
+        '亏麻了.png',
+        '你居然不听劝.png',
+        '你这人咋这样.png',
+        '保本.png',
+        '发财了.png',
+        '听我的没错.png',
+        '嘿嘿被你看穿了.png',
+        '困死老娘了.png',
+        '好感动.png',
+        '对了.png',
+        '就你不听劝我生气了.png',
+        '工作中勿扰.png',
+        '干嘛呢.png',
+        '我明白了.png',
+        '搞鸡毛啊.png',
+        '无语了.png',
+        '是呀是呀.png',
+        '正常状态.png',
+        '注意风险.png',
+        '满脑疑问.png',
+        '照片人物卡通化设计 (10).png',
+        '照片人物卡通化设计 (11).png',
+        '照片人物卡通化设计 (12).png',
+        '照片人物卡通化设计 (13).png',
+        '照片人物卡通化设计 (14).png',
+        '照片人物卡通化设计 (15).png',
+        '照片人物卡通化设计 (16).png',
+        '照片人物卡通化设计 (17).png',
+        '照片人物卡通化设计 (2).png',
+        '照片人物卡通化设计 (3).png',
+        '照片人物卡通化设计 (4).png',
+        '照片人物卡通化设计 (5).png',
+        '照片人物卡通化设计 (6).png',
+        '照片人物卡通化设计 (7).png',
+        '照片人物卡通化设计 (8).png',
+        '照片人物卡通化设计 (9).png',
+        '熬夜工作.png',
+        '真的吗嘿嘿.png',
+        '研究研究.png',
+        '赶紧抄底.png',
+        '这个有问题.png',
+        '错失良机呀.png',
+];
+let btnIdx = 0;
+function rotateBtnImg() {
+    const el = document.getElementById('neoBtnImg');
+    if (el) {
+        btnIdx = (btnIdx + 1) % btnImages.length;
+        el.src = '/static/img/cartoons/' + btnImages[btnIdx] + '?t=' + btnIdx;
+    }
+}
+setInterval(rotateBtnImg, 3000);
+
+// === AI设置相关 ===
+let aiSettings = null;
+
+// 切换本地/外接AI面板
+document.getElementById('aiSwitchLocal').addEventListener('change', () => {
+    document.getElementById('aiLocalPanel').style.display = 'block';
+    document.getElementById('aiRemotePanel').style.display = 'none';
+});
+document.getElementById('aiSwitchRemote').addEventListener('change', () => {
+    document.getElementById('aiLocalPanel').style.display = 'none';
+    document.getElementById('aiRemotePanel').style.display = 'block';
+});
+
+// 加载AI设置
+async function loadAiSettings() {
+    try {
+        const res = await fetch('/api/ai/settings');
+        const data = await res.json();
+        if (data.success) {
+            aiSettings = data.settings;
+            // 设置开关
+            if (aiSettings.use_local_ai) {
+                document.getElementById('aiSwitchLocal').checked = true;
+                document.getElementById('aiLocalPanel').style.display = 'block';
+                document.getElementById('aiRemotePanel').style.display = 'none';
+            } else {
+                document.getElementById('aiSwitchRemote').checked = true;
+                document.getElementById('aiLocalPanel').style.display = 'none';
+                document.getElementById('aiRemotePanel').style.display = 'block';
+            }
+            // 填充本地AI设置
+            if (aiSettings.local) {
+                document.getElementById('aiLocalUrl').value = aiSettings.local.base_url || '';
+                document.getElementById('aiLocalModel').value = aiSettings.local.model || '';
+                document.getElementById('aiLocalKey').value = aiSettings.local.api_key || '';
+            }
+            // 填充外接API设置
+            if (aiSettings.remote) {
+                document.getElementById('aiRemoteUrl').value = aiSettings.remote.base_url || '';
+                document.getElementById('aiRemoteModel').value = aiSettings.remote.model || '';
+                document.getElementById('aiRemoteKey').value = aiSettings.remote.api_key || '';
+            }
+        }
+    } catch(e) {
+        console.log('AI设置加载失败:', e);
+    }
+}
+
+// 保存AI设置
+async function saveAiSettings() {
+    const useLocal = document.getElementById('aiSwitchLocal').checked;
+    const body = {
+        use_local_ai: useLocal,
+        local: {
+            base_url: document.getElementById('aiLocalUrl').value.trim(),
+            model: document.getElementById('aiLocalModel').value.trim(),
+            api_key: document.getElementById('aiLocalKey').value.trim()
+        },
+        remote: {
+            base_url: document.getElementById('aiRemoteUrl').value.trim(),
+            model: document.getElementById('aiRemoteModel').value.trim(),
+            api_key: document.getElementById('aiRemoteKey').value.trim()
+        }
+    };
+    try {
+        const res = await fetch('/api/ai/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            aiSettings = data.settings;
+            document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-success"><span class="alert-icon">✅</span><span>' + data.message + '</span></div>';
+            showToast(data.message);
+        } else {
+            document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>保存成功，但返回了消息</span></div>';
+        }
+    } catch(e) {
+        document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>保存出错：' + e.message + '</span></div>';
+    }
+}
+
+// 测试AI连接
+async function testAiConnection() {
+    const useLocal = document.getElementById('aiSwitchLocal').checked;
+    let url, apiKey;
+    if (useLocal) {
+        url = document.getElementById('aiLocalUrl').value.trim();
+        apiKey = document.getElementById('aiLocalKey').value.trim();
+    } else {
+        url = document.getElementById('aiRemoteUrl').value.trim();
+        apiKey = document.getElementById('aiRemoteKey').value.trim();
+    }
+    const modelInput = useLocal ? document.getElementById('aiLocalModel') : document.getElementById('aiRemoteModel');
+    const model = modelInput.value.trim();
+
+    if (!url) {
+        document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>先填一下API地址再测！</span></div>';
+        return;
+    }
+
+    document.getElementById('aiSettingResult').innerHTML = '<p class="hint">🔌 正在测试连接...（可能需5-15秒）</p>';
+
+    try {
+        const testUrl = url.replace(/\/+$/, '') + '/chat/completions';
+        const res = await fetch(testUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+                model: model || 'anthropic-claude-4',
+                messages: [
+                    {'role': 'system', 'content': '用一句话回答'}
+                ],
+                max_tokens: 20
+            }),
+            timeout: 15000
+        });
+        const data = await res.json();
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            const reply = data.choices[0].message.content;
+            document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-success"><span class="alert-icon">✅</span><span>连接成功！AI回复：' + reply + '</span></div>';
+        } else {
+            document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-warning"><span class="alert-icon">⚠️</span><span>收到响应但格式不太对：' + JSON.stringify(data).substring(0, 200) + '</span></div>';
+        }
+    } catch(e) {
+        document.getElementById('aiSettingResult').innerHTML = '<div class="alert alert-danger"><span class="alert-icon">🔴</span><span>连接测试失败：' + e.message + '（检查一下地址和Key对不对）</span></div>';
+    }
+}
+
+// 页面加载时初始化AI设置
+
+// === AI回测功能 ===
+async function runBacktest() {
+    const assetVal = document.getElementById('backtestAsset').value;
+    const [assetCode, assetName] = assetVal.split('|');
+    const capital = parseInt(document.getElementById('backtestCapital').value);
+    const strategy = document.getElementById('backtestStrategy').value;
+    const resultDiv = document.getElementById('backtestResult');
+    resultDiv.innerHTML = '<p class="hint">⏳ 正在跑回测，请稍等...</p>';
+
+    try {
+        const res = await fetch('/api/backtest', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({asset_code: assetCode, asset_name: assetName, initial_capital: capital, strategy: strategy})
+        });
+        const data = await res.json();
+        renderBacktestResult(resultDiv, data);
+    } catch(e) {
+        resultDiv.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">⚡</span> 回测出错：${e.message}</div>`;
+    }
+}
+
+function renderBacktestResult(container, data) {
+    const s = data.summary;
+    const profitColor = s.total_return >= 0 ? '#e17a0c' : '#00b369';
+    let html = `
+    <div class="calc-result">
+        <h3 style="margin-bottom:12px;">📊 回测结果</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">总收益率</div>
+                <div style="font-size:28px;font-weight:800;color:${profitColor};">${s.total_return > 0 ? '+' : ''}${s.total_return}%</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">最终资金</div>
+                <div style="font-size:28px;font-weight:800;color:#0984e3;">¥${s.final_capital.toFixed(0)}</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">最大回撤</div>
+                <div style="font-size:28px;font-weight:800;color:#d63031;">${s.max_drawdown}%</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">胜率</div>
+                <div style="font-size:28px;font-weight:800;color:#27ae60;">${s.win_rate}%</div>
+            </div>
+        </div>
+        <div style="background:white;border-radius:12px;padding:16px;margin-bottom:12px;">
+            <div class="line"><strong>总交易次数：</strong>${s.total_trades} 次</div>
+            <div class="line"><strong>平均持仓天数：</strong>${s.avg_holding_days} 天</div>
+            <div class="line"><strong>夏普比率：</strong>${s.sharpe}（越高越好，>1 算不错）</div>
+        </div>`;
+
+    // Show trade history (last 15 trades)
+    if (data.trades && data.trades.length > 0) {
+        html += '<h3 style="margin:16px 0 8px;">📝 交易记录（最近15笔）</h3>';
+        html += '<div style="max-height:400px;overflow-y:auto;">';
+        const recentTrades = data.trades.slice(-15).reverse();
+        for (const t of recentTrades) {
+            const isBuy = t.action === 'BUY';
+            const color = isBuy ? '#27ae60' : '#e17a0c';
+            const icon = isBuy ? '🟢' : '🟠';
+            html += `<div style="padding:10px 14px;background:${isBuy ? '#f0fdf4' : '#fff8e1'};border-radius:8px;margin-bottom:6px;font-size:13px;line-height:1.6;">
+                <strong>${icon} ${t.date} — ${t.action}</strong> | ¥${t.price} × ${t.qty}
+                <div style="color:#636e72;margin-top:2px;">💡 ${t.note}</div>
+            </div>`;
+        }
+        html += '</div>';
+    }
+
+    // Summary comment
+    let comment = '';
+    if (s.total_return > 15) {
+        comment = '🎉 不错！AI 在这一年能帮你赚到钱。当然，历史不代表未来，仅供参考。';
+    } else if (s.total_return > 5) {
+        comment = '😐 AI 的表现中规中矩，比"一把梭哈"强一些。';
+    } else if (s.total_return > 0) {
+        comment = '😅 AI 虽然赚了，但没赚多少。可能这个品种当年就不太给力。';
+    } else {
+        comment = '📉 连 AI 都没跑赢，说明这一年确实不好做。现金为王！';
+    }
+    html += `<div class="alert alert-info" style="margin-top:12px;"><span class="alert-icon">💡</span> ${comment}</div>`;
+    html += '</div>';
+
+    container.innerHTML = html;
+}
+
+// === 防套路检验功能 ===
+async function runStressTest() {
+    const assetVal = document.getElementById('stressAsset').value;
+    const [assetCode, assetName] = assetVal.split('|');
+    const days = parseInt(document.getElementById('stressDays').value);
+    const resultDiv = document.getElementById('stressResult');
+    resultDiv.innerHTML = '<p class="hint">⏳ 正在分析历史数据...</p>';
+
+    try {
+        const res = await fetch('/api/stress-test', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({asset_code: assetCode, asset_name: assetName, days: days})
+        });
+        const data = await res.json();
+        renderStressResult(resultDiv, data);
+    } catch(e) {
+        resultDiv.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">⚡</span> 检验出错：${e.message}</div>`;
+    }
+}
+
+function renderStressResult(container, data) {
+    const r = data.results;
+    let html = `
+    <div class="calc-result">
+        <h3 style="margin-bottom:12px;">🔬 防套路检验报告</h3>
+        <p style="font-size:14px;color:#636e72;">测试周期：${data.period}</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">预警总数</div>
+                <div style="font-size:28px;font-weight:800;color:#e67e22;">${data.total_events} 个</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">命中率</div>
+                <div style="font-size:28px;font-weight:800;color:#27ae60;">${r.hit_rate}%</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">听AI的收益</div>
+                <div style="font-size:28px;font-weight:800;color:#27ae60;">${r.listened_profit > 0 ? '+' : ''}${r.listened_profit}%</div>
+            </div>
+            <div style="background:white;border-radius:12px;padding:16px;text-align:center;">
+                <div style="font-size:12px;color:#636e72;">不听AI的收益</div>
+                <div style="font-size:28px;font-weight:800;color:#636e72;">${r.ignored_profit > 0 ? '+' : ''}${r.ignored_profit}%</div>
+            </div>
+        </div>`;
+
+    // Timeline of events
+    if (data.timeline && data.timeline.length > 0) {
+        html += '<h3 style="margin:16px 0 8px;">📅 预警时间线</h3>';
+        for (const evt of data.timeline) {
+            const isWin = evt.profit_if_listened > evt.profit_if_ignored;
+            html += `<div style="padding:10px 14px;background:${isWin ? '#f0fdf4' : '#fff8e1'};border-radius:8px;margin-bottom:6px;font-size:13px;line-height:1.6;">
+                <strong>${evt.date}</strong> — ${evt.event}
+                <div style="color:#636e72;">${evt.ai_signal}</div>
+                <div style="color:${isWin ? '#27ae60' : '#e67e22'};">${evt.outcome}</div>
+            </div>`;
+        }
+    }
+
+    html += `<div class="alert alert-info" style="margin-top:12px;"><span class="alert-icon">💡</span> ${data.summary}</div>`;
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// === 宏观仪表盘功能 ===
+async function loadMacroDashboard() {
+    const container = document.getElementById('macroContent');
+    container.innerHTML = '<p class="hint">⏳ 正在加载宏观数据...</p>';
+
+    try {
+        const res = await fetch('/api/macro/dashboard');
+        const data = await res.json();
+        renderMacroDashboard(container, data);
+    } catch(e) {
+        container.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">⚡</span> 数据加载出错：${e.message}</div>`;
+    }
+}
+
+function renderMacroDashboard(container, data) {
+    const d = data.data;
+    let html = `<p class="hint" style="margin-bottom:16px;">最后更新：${data.updated_at || '—'}</p>`;
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+
+    const indicators = [
+        {key: 'vix', label: 'VIX恐慌指数', icon: '😰', desc: '越高说明市场越慌，>20 算紧张'},
+        {key: 'dxy', label: '美元指数', icon: '💵', desc: '美元走强，新兴市场通常承压'},
+        {key: 'us10y', label: '美债10年期收益率', icon: '📊', desc: '债市的"锚"，>4% 算高'},
+        {key: 'shibor', label: 'SHIBOR（7天）', icon: '🏦', desc: '国内钱紧不紧的指标'},
+        {key: 'cpi', label: 'CPI通胀率', icon: '🥐', desc: '物价涨得快不快'},
+        {key: 'fed_rate', label: '美联储利率', icon: '🏛️', desc: '全球钱的"价格"'},
+    ];
+
+    for (const ind of indicators) {
+        const val = d[ind.key] || {};
+        const value = val.current || val.value || '—';
+        const change = val.change || val.change_pct || 0;
+        const trend = change >= 0 ? '📈' : '📉';
+        const color = change >= 0 ? '#e17a0c' : '#00b369';
+        html += `<div style="background:white;border-radius:12px;padding:16px;">
+            <div style="font-size:20px;margin-bottom:4px;">${ind.icon}</div>
+            <div style="font-size:13px;color:#636e72;margin-bottom:4px;">${ind.label}</div>
+            <div style="font-size:24px;font-weight:800;color:#2d3436;">${value}</div>
+            <div style="font-size:12px;color:${color};margin-top:2px;">${trend} ${change > 0 ? '+' : ''}${change}</div>
+            <div style="font-size:11px;color:#636e72;margin-top:4px;">${ind.desc}</div>
+        </div>`;
+    }
+
+    html += '</div>';
+    html += `<div class="alert alert-info" style="margin-top:16px;"><span class="alert-icon">🧠</span> ${data.summary}</div>`;
+    container.innerHTML = html;
+}
+
+</script>
+</body>
+</html>
