@@ -11,6 +11,7 @@ from flask import Flask, render_template, jsonify, request
 from datetime import datetime
 
 from config import ALLOWED_ETF_POOL, SIMULATION, RISK_RULES, STRATEGY_MA, REAL_TRADING, ALLOWED_STOCK_POOL, GOLD_MONITOR
+from lang import T, set_lang, get_lang, UI_TEXTS
 from data import fetch_etf_realtime
 from risk_engine import assess_market_risk, detect_scam_patterns, calculate_preservation, alert_check
 from analysis import fetch_financial_news
@@ -140,8 +141,8 @@ def _get_trader():
 def _get_mode_display(mode):
     """返回模式的大白话描述"""
     if mode == 'REAL':
-        return '实盘（真金白银，小心点！）'
-    return '模拟盘（先练手再说）'
+        return str(T.mode_real_desc)
+    return str(T.mode_paper_desc)
 
 # 扫描缓存
 _scan_cache = {}
@@ -150,7 +151,19 @@ _SCAN_CACHE_TTL = 180  # 3分钟
 @app.route('/')
 def index():
     """主页"""
-    return render_template('index.html')
+    return render_template('index.html', lang=get_lang(), ui_texts=UI_TEXTS.get(get_lang(), UI_TEXTS['zh']))
+
+@app.route('/api/lang/switch', methods=['POST'])
+def api_lang_switch():
+    """切换语言"""
+    data = request.json or {}
+    lang = data.get('lang', 'zh')
+    set_lang(lang)
+    return jsonify({
+        'success': True,
+        'lang': get_lang(),
+        'ui_texts': UI_TEXTS.get(lang, UI_TEXTS['zh'])
+    })
 
 @app.route('/api/market/risk')
 def api_market_risk():
@@ -195,7 +208,7 @@ def api_trade_mode_set():
     if new_mode not in ('PAPER', 'REAL'):
         return jsonify({
             'success': False,
-            'reason': '模式不对，传 PAPER（模拟盘）或 REAL（实盘）'
+            'reason': str(T.mode_switch_fail)
         }), 400
     _current_mode = new_mode
     _save_mode(new_mode)
@@ -232,7 +245,7 @@ def api_alerts():
         return jsonify({
             'alerts': [],
             'portfolio': {},
-            'message': '暂无持仓数据，先看看你的账户吧！'
+            'message': str(T.acct_no_holding)
         })
 
     cash = account_result.get('cash', 0)
@@ -276,7 +289,7 @@ def api_alerts():
             'cash': round(cash, 2),
             'holdings_count': len(holdings),
         },
-        'message': f'检查了{len(holdings)}个持仓，发现了{len(alerts)}条警报' if alerts else '持仓状态还不错，继续观察！'
+        'message': f'{T.acct_checking}{len(holdings)}{T.acct_alerts_found}{len(alerts)}{T.acct_alerts_ok}' if alerts else str(T.acct_no_alerts)
     })
 
 @app.route('/api/scam/detect', methods=['POST'])
@@ -396,21 +409,21 @@ def api_stats():
 
     # 大白话翻译
     if stats['total_sells'] == 0:
-        summary = "还没开始卖，先买再说！"
+        summary = str(T.stats_no_sell)
     elif stats['win_rate'] >= 60:
-        summary = "卖了{}次，赢了{}次（{}%），你挺厉害的嘛！".format(
+        summary = str(T.stats_sold_awesome).format(
             stats['total_sells'], stats['wins'], stats['win_rate'])
     elif stats['win_rate'] >= 40:
-        summary = "卖了{}次，赢了{}次（{}%），还不错，继续加油！".format(
+        summary = str(T.stats_sold_ok).format(
             stats['total_sells'], stats['wins'], stats['win_rate'])
     else:
-        summary = "卖了{}次，赢了{}次（{}%），该复盘一下了".format(
+        summary = str(T.stats_sold_review).format(
             stats['total_sells'], stats['wins'], stats['win_rate'])
 
     if stats['total_pnl'] > 0:
-        summary += "\n总共赚了¥{:.0f}，钱包在变胖！".format(stats['total_pnl'])
+        summary += str(T.stats_earned).format(stats['total_pnl'])
     elif stats['total_pnl'] < 0:
-        summary += "\n总共亏了¥{:.0f}，相当于少吃了几顿火锅".format(abs(stats['total_pnl']))
+        summary += str(T.stats_lost).format(abs(stats['total_pnl']))
 
     stats['summary'] = summary
     return jsonify(stats)
@@ -452,9 +465,9 @@ def _call_vllm(messages, max_tokens=4096):
                 return content.strip()
             elif reasoning:
                 return reasoning.strip()
-            return '（NEO正在思考中...）'
+            return str(T.ai_thinking)
     except Exception as e:
-        return f"（NEO正在思考中...）{str(e)}"
+        return str(T.ai_thinking) + str(e)
 
 @app.route('/api/ai/settings')
 def api_ai_settings_get():
@@ -497,7 +510,7 @@ def api_ai_settings_save():
     ok = _save_ai_settings(settings)
     return jsonify({
         'success': ok,
-        'message': '✅ AI设置已保存，马上生效！' if ok else '保存成功，配置已更新',
+        'message': str(T.ai_settings_saved) if ok else str(T.ai_settings_ok),
         'settings': settings
     })
 
@@ -567,13 +580,13 @@ def _get_stock_info(scode):
 def _classify_sector(code):
     """根据代码分类板块"""
     if not code: code = ''
-    if code.startswith(('600','601','603')): return '主板'
-    elif code.startswith('688'): return '科创板'
-    elif code.startswith('300'): return '创业板'
-    elif code.startswith(('002','001')): return '中小板'
-    elif code.startswith('000'): return '深主板'
-    elif code.startswith('301'): return '创业板'
-    return '其他'
+    if code.startswith(('600','601','603')): return 'Main Board'
+    elif code.startswith('688'): return 'STAR Board'
+    elif code.startswith('300'): return 'GEM Board'
+    elif code.startswith(('002','001')): return 'SME Board'
+    elif code.startswith('000'): return 'SZSE Main'
+    elif code.startswith('301'): return 'GEM Board'
+    return 'Other'
 
 def _search_stocks_by_name(keyword):
     """按名字模糊搜索股票，返回结果列表。
@@ -637,14 +650,14 @@ def api_stock_search():
     data = request.json or {}
     query = data.get('query', '').strip()
     if not query:
-        return jsonify({'success': False, 'reason': '输入个股票代码或名字'}), 400
+        return jsonify({'success': False, 'reason': str(T.stock_search_empty)}), 400
 
     # 纯数字或带点号的代码 = 精确查询
     if query.replace('.', '').isdigit():
         info = _get_stock_info(query)
         if info:
             return jsonify({'success': True, 'count': 1, 'results': [info]})
-        return jsonify({'success': False, 'reason': f'代码 "{query}" 没查到，确认一下是不是6位数字？'})
+        return jsonify({'success': False, 'reason': T.stock_search_not_found.replace('{query}', query)})
 
     # 包含数字但不是纯数字 = 可能是"山东创新"或"豪美"等名字
     # 或者就是纯中文 = 名字模糊查询
@@ -654,7 +667,7 @@ def api_stock_search():
 
     return jsonify({
         'success': False,
-        'reason': f'"{query}" 没查到。试试输入完整的6位股票代码（如 600519）或股票名字（如 茅台、宁德时代）'
+        'reason': T.stock_search_query_not_found.replace('{query}', query)
     })
 @app.route('/api/news/list')
 def api_news_list():
@@ -683,23 +696,23 @@ def api_trend_analysis():
             'price': etf['price'],
             'change_pct': change,
             'trend': trend_signal,
-        } if trend_signal != '加载中...' else {
+        } if trend_signal != str(T.trend_loading) else {
             'code': code,
             'name': etf['name'],
             'price': etf['price'],
             'change_pct': change,
-            'trend': '🟡 震荡 — 横着走，别瞎动',
+            'trend': str(T.trend_flat),
         })
     
     # 综合判断
     green_count = sum(1 for r in results if '🟢' in r['trend'])
     red_count = sum(1 for r in results if '🔴' in r['trend'])
     if green_count > red_count + 2:
-        summary = '🟢 整体偏暖 — 市场在升温，可以适当关注'
+        summary = str(T.trend_warm_overall)
     elif red_count > green_count + 2:
-        summary = '🔴 整体偏冷 — 市场有点凉，别急着冲'
+        summary = str(T.trend_cold_overall)
     else:
-        summary = '🟡 整体震荡 — 涨跌都有，观望为主'
+        summary = str(T.trend_flat_overall)
     
     return jsonify({
         'success': True,
@@ -711,15 +724,15 @@ def api_trend_analysis():
 def _simple_trend_signal(change_pct):
     """根据涨跌幅简单判断趋势"""
     if change_pct > 1.5:
-        return '🟢 偏暖 — 市场在升温，可以关注'
+        return str(T.trend_warm)
     elif change_pct > 0.5:
-        return '🟢 微暖 — 小涨，不急不躁'
+        return str(T.trend_warm_slight)
     elif change_pct < -1.5:
-        return '🔴 偏冷 — 市场有点凉，别急着冲'
+        return str(T.trend_cold)
     elif change_pct < -0.5:
-        return '🟡 微冷 — 小跌，观望为主'
+        return str(T.trend_cold_slight)
     else:
-        return '🟡 震荡 — 横着走，别瞎动'
+        return str(T.trend_flat)
 
 @app.route('/api/ai/chat', methods=['POST'])
 def api_ai_chat():
@@ -759,8 +772,30 @@ def api_ai_chat():
     cash = account.get('cash', 0)
     total = account.get('cash', 0)
     
-    # 构建系统消息 — 给AI更多上下文
-    system_msg = f"""{AI_PERSONALITY}
+    # 构建系统消息 — 根据当前语言切换
+    lang = get_lang()
+    if lang == 'en':
+        system_msg = f"""You are NEO, a financial guardian AI assistant. Keep answers concise, under 5 sentences.
+
+Current time: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+Current mode: {'Paper Trading' if _current_mode == 'PAPER' else 'Live Trading'}
+
+Your portfolio:
+- Cash: ¥{cash:,.0f}
+- Total: ¥{total:,.0f}
+
+Market snapshot:
+{chr(10).join(market_info)}
+
+Recent financial news (top 8):
+{news_text}
+
+Market trend analysis:
+{chr(10).join(trends)}
+
+Based on the above, answer the user's question concisely. If asked about buying or selling, give a specific recommendation with reasoning. Keep it under 5 sentences."""
+    else:
+        system_msg = f"""{AI_PERSONALITY}
 
 当前时间：{datetime.now().strftime('%Y年%m月%d日 %H:%M')}
 当前模式：{'模拟盘' if _current_mode == 'PAPER' else '实盘'}
@@ -770,13 +805,13 @@ def api_ai_chat():
 - 总资产：¥{total:,.0f}
 
 市场快照：
-{'\n'.join(market_info)}
+{chr(10).join(market_info)}
 
 近期财经新闻（前8条）：
 {news_text}
 
 市场趋势判断：
-{'\n'.join(trends)}
+{chr(10).join(trends)}
 
 请根据以上信息，用大白话回答用户的问题。如果用户问的是"买"或"卖"，给出具体建议并说明理由。回答要简洁，不超过5句话。"""
     
@@ -803,27 +838,41 @@ def api_ai_analyze_market():
     market_summary = []
     for etf in etf_data:
         change = etf.get('change_pct', 0)
-        direction = '涨' if change > 0 else ('跌' if change < 0 else '平')
+        direction = 'UP' if change > 0 else ('DOWN' if change < 0 else 'FLAT')
         trend_signal = _simple_trend_signal(change)
-        market_summary.append(f"{etf['name']}({etf['code']}）：{direction}{abs(change):.1f}%，趋势：{trend_signal}")
+        market_summary.append(f"{etf['name']}({etf['code']}): {direction} {abs(change):.1f}%, trend: {trend_signal}")
     
     news_summary = ''
     for n in news:
         news_summary += f"• {n.get('title', '')}: {n.get('summary', '')}\n"
     
-    user_msg = f"""请综合以下信息，用大白话告诉我：
+    lang = get_lang()
+    if lang == 'en':
+        user_msg = f"""Based on the following information, tell me:
+1. What is the overall market situation?
+2. Any important recent news?
+3. Should I buy or sell now?
+4. What are the risks?
+
+Market data:
+{chr(10).join(market_summary)}
+
+Recent news:
+{news_summary}"""
+        system_msg = "You are NEO, a financial guardian AI assistant. Keep answers concise and easy to understand."
+    else:
+        user_msg = f"""请综合以下信息，用大白话告诉我：
 1. 现在整体市场是什么情况？
 2. 最近有什么重要新闻？
 3. 现在是该买还是该卖？
 4. 有什么风险？
 
 市场数据：
-{'\n'.join(market_summary)}
+{chr(10).join(market_summary)}
 
 近期新闻：
 {news_summary}"""
-    
-    system_msg = f"{AI_PERSONALITY}\n\n用大白话回答，8岁小孩和80岁老奶奶都能听懂。回答要简洁有力。"
+        system_msg = f"{AI_PERSONALITY}\n\n用大白话回答，8岁小孩和80岁老奶奶都能听懂。回答要简洁有力。"
     
     messages = [
         {'role': 'system', 'content': system_msg},
@@ -988,3 +1037,4 @@ if __name__ == '__main__':
         print("🔖 浏览器已自动打开")
     threading.Thread(target=_open_browser, daemon=True).start()
     app.run(host='0.0.0.0', port=8700, threaded=True, debug=False)
+

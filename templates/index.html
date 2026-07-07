@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛡️ NEO — NEO v2.0</title>
+    <title data-i18n="page_title">🛡️ NEO — 财经防护仪表盘</title>
+    <script src="/static/js/i18n.js"></script>
     <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
@@ -560,6 +561,7 @@ body { font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; bac
     <div class="mode-indicator">
         <span style="font-size:13px;opacity:0.8">当前模式：</span>
         <span class="mode-badge paper" id="modeBadge" onclick="toggleMode()">📝 模拟盘</span>
+        <button onclick="switchLang()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:4px 12px;border-radius:20px;cursor:pointer;font-size:12px;margin-left:8px;" id="langBtn">🇬🇧 EN</button>
     </div>
     <div class="help-dropdown">
         <button class="help-btn" id="helpBtn" onclick="toggleHelpMenu()">❓ 帮助中心 <span class="arrow">▼</span></button>
